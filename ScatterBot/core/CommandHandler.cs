@@ -21,7 +21,8 @@ public class CommandHandler
     {
         client.MessageReceived += HandleCommandAsync;
         client.MessageUpdated += HandleMsgUpdate;
-
+        client.UserJoined += ctx => RoleAssignHelper.Instance.AddUser(ctx.Id, ctx.Guild);
+        
         await commands.AddModulesAsync(
             assembly: Assembly.GetEntryAssembly(),
             services: null);

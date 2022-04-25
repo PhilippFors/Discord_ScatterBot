@@ -40,7 +40,7 @@ public class InteractionHandler
         // Context & Slash commands can be automatically registered, but this process needs to happen after the client enters the READY state.
         // Since Global Commands take around 1 hour to register, we should use a test guild to instantly update and test our commands.
 #if DEBUG
-        await _handler.RegisterCommandsToGuildAsync(HardcodedShit.guildId, true);
+        await _handler.RegisterCommandsToGuildAsync(HardcodedShit.guildId);
 #else
         await _handler.RegisterCommandsGloballyAsync(true);
 #endif
@@ -58,7 +58,9 @@ public class InteractionHandler
             if (!result.IsSuccess) {
                 switch (result.Error) {
                     case InteractionCommandError.UnmetPrecondition:
-                        // implement
+                        await interaction.RespondAsync("You don't have the permission to use this, dumbass");
+                        break;
+                    case InteractionCommandError.UnknownCommand:
                         break;
                     default:
                         break;
