@@ -1,5 +1,7 @@
 This discord bot is written with the Discord .Net API Wrapper in C#. I don't know how many things I will add but for now there will be basic things for server management. A lot of stuff is still hard coded right now. I will eventually move this to a config file or try to do everything dynamically at runtime. Time will tell.
 
+## Note that this bot has been strongly customized to fit with my server setup. Feel free to yoink any code you want, but you'll most certainly have to adjsut a lot of things and navigate my terrible code.
+
 Features so far
 - Keeping track of new members and giving them access to the server with a single command.
 - "Muting" users by taking away their roles and assigning a special muted role. Original roles will be given back upon unmuting.
