@@ -5,7 +5,7 @@ Features so far
 - "Muting" users by taking away their roles and assigning a special muted role. Original roles will be given back upon unmuting.
 - Banning and kicking users
 - adding/removing roles from users
-- Archiving Utility: You can configure an archive channel, as well as channels to monitor. If a message is pinned in a monitored channel, the bot will automatically remove the pin and post a copy of that message into the archive channel. It works with pictures, links and will also put spoilers on images or text if it was in the original message.
+- Archiving Utility (reqires audit read access): You can configure an archive channel, as well as channels to monitor. If a message is pinned in a monitored channel, the bot will automatically remove the pin and post a copy of that message into the archive channel. It works with pictures, links and will also put spoilers on images or text if it was in the original message.
 - The bot can purge messages. Either just generally in a channel or from a specific user in a channel. This is prone to being severly rate limited though.
 - Most features can be used with either a textbased command using the '!' prefix or slash commands (Slash commands hate arrays so that kinda sucks),
 - The bot token will be read from an external text file.
