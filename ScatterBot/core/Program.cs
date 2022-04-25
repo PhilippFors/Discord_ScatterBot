@@ -17,14 +17,12 @@ namespace ScatterBot.core
         {
             var config = new DiscordSocketConfig() {
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildMembers | GatewayIntents.GuildMessages,
-                AlwaysDownloadUsers = true,
                 MessageCacheSize = 400,
             };
 
             client = new DiscordSocketClient(config);
             var f = File.OpenRead("token.txt");
             var token = new StreamReader(f).ReadToEnd();
-            f.Close();
             f.Dispose();
             
             client.Log += Log;

@@ -3,7 +3,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using ScatterBot.core.Helpers;
-using ScatterBot.core.Modules;
 
 namespace ScatterBot.core;
 
@@ -32,7 +31,7 @@ public class CommandHandler
     {
         await PinHelper.Instance.Pin(m, channel, client);
     }
-    
+
     private async Task HandleCommandAsync(SocketMessage socketMessage)
     {
         var message = socketMessage as SocketUserMessage;
@@ -40,18 +39,9 @@ public class CommandHandler
             return;
         }
 
-        var guild = client.GetGuild(967532421975273563);
-        var user = guild.GetUser(message.Author.Id);
-        var perms = user.GuildPermissions;
-        
-        if(!perms.Has(GuildPermission.ModerateMembers) || message.Author.IsBot)
-        {
-            return;
-        }
-
         int argPos = 0;
         
-        if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos))) {
+        if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos)) || message.Author.IsBot) {
             return;
         }
         
