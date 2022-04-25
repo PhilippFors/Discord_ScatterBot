@@ -1,4 +1,4 @@
-This discord bot is written with the Discord .Net API Wrapper in C#. I don't know how many things I will add but for now there will be basic things for server management.
+This discord bot is written with the Discord .Net API Wrapper in C#. I don't know how many things I will add but for now there will be basic things for server management. A lot of stuff is still hard coded right now. I will eventually move this to a config file or try to do everything dynamically at runtime. Time will tell.
 
 Features so far
 - Keeping track of new members and giving them access to the server with a single command.
