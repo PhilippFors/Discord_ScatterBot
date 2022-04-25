@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 
 namespace ScatterBot.core
@@ -9,7 +10,8 @@ namespace ScatterBot.core
         private DiscordSocketClient client;
         private CommandHandler handler;
         private CommandService service;
-
+        private InteractionService interaction;
+        private InteractionHandler interactionHandler;
         public static void Main(string[] args) =>
             new Program().MainAsync().GetAwaiter().GetResult();
 
@@ -32,6 +34,11 @@ namespace ScatterBot.core
            
             service = new CommandService();
             handler = new CommandHandler(client, service);
+
+            interaction = new InteractionService(client.Rest);
+            interactionHandler = new InteractionHandler(client, interaction, null);
+
+            await interactionHandler.InitializeAsync();
             await handler.InstallCommandsAsync();
 
             await Task.Delay(-1);
