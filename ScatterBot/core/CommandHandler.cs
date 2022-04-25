@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using ScatterBot.core.Helpers;
 using ScatterBot.core.Modules;
 
 namespace ScatterBot.core;
@@ -20,17 +21,16 @@ public class CommandHandler
     public async Task InstallCommandsAsync()
     {
         client.MessageReceived += HandleCommandAsync;
-        client.MessageUpdated += HandlePin;
+        client.MessageUpdated += HandleMsgUpdate;
 
         await commands.AddModulesAsync(
             assembly: Assembly.GetEntryAssembly(),
             services: null);
     }
 
-    private async Task HandlePin(Cacheable<IMessage,ulong> messages, SocketMessage m, ISocketMessageChannel channel)
+    private async Task HandleMsgUpdate(Cacheable<IMessage,ulong> messages, SocketMessage m, ISocketMessageChannel channel)
     {
-        Console.WriteLine("Update");
-        await PinModule.Instance.Pin(m, channel, client);
+        await PinHelper.Instance.Pin(m, channel, client);
     }
     
     private async Task HandleCommandAsync(SocketMessage socketMessage)
@@ -44,12 +44,10 @@ public class CommandHandler
         var user = guild.GetUser(message.Author.Id);
         var perms = user.GuildPermissions;
         
-        if(!perms.Has(GuildPermission.ModerateMembers) || !perms.Has(GuildPermission.Administrator) || message.Author.IsBot)
+        if(!perms.Has(GuildPermission.ModerateMembers) || message.Author.IsBot)
         {
             return;
         }
-        
-        // || message.Channel.Id != 967863966711812136
 
         int argPos = 0;
         

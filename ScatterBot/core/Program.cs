@@ -20,12 +20,13 @@ namespace ScatterBot.core
                 AlwaysDownloadUsers = true,
                 MessageCacheSize = 400,
             };
-           
-            
+
             client = new DiscordSocketClient(config);
             var f = File.OpenRead("token.txt");
             var token = new StreamReader(f).ReadToEnd();
-
+            f.Close();
+            f.Dispose();
+            
             client.Log += Log;
 
             await client.LoginAsync(TokenType.Bot, token);
