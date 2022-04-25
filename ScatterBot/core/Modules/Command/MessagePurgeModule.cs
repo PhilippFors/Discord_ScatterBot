@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using ScatterBot.core.Helpers;
 
-namespace ScatterBot.core.Modules;
+namespace ScatterBot.core.Modules.Command;
 
 [Group("purgemsg")]
 [RequireUserPermission(GuildPermission.ManageChannels)]
@@ -14,7 +14,7 @@ public class MessagePurgeModule : ModuleBase<SocketCommandContext>
     {
         var channel = Context.GetChannel(channelId);
 
-        var messages = await channel.GetMessagesAsync(amount).FlattenAsync();
+        var messages = await channel.GetMessagesAsync(amount + 1).FlattenAsync();
         foreach (var ele in messages) {
             await ele.DeleteAsync();
             await Task.Delay(100);

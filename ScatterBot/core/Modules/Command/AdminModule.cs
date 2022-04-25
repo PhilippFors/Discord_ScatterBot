@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using ScatterBot.core.Helpers;
 
-namespace ScatterBot.core.Modules;
+namespace ScatterBot.core.Modules.Command;
 
 [Group("admin")]
 [RequireUserPermission(GuildPermission.ModerateMembers)]

@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 
 namespace ScatterBot.core.Helpers;
@@ -23,40 +22,80 @@ public class RoleAssignHelper
     private string WelcomeMessageStart => "Welcome to the server";
 
     private string WelcomeMessageEnd =>
-        "\nYou now have a role to access the server. Stick to the rules and have fun! If you are interested in helping out with playtesting, ask ";
+        "\nYou now have a role to access the server. Stick to the rules and have fun! If you are interested in helping out with playtesting, ask";
+
+    private int minMessageCount = 20;
 
     public RoleAssignHelper()
     {
         newUsers = new List<SocketGuildUser>();
     }
 
-    public async Task AddUser(ulong id, SocketGuild guild)
+    public Task AddUser(ulong id, SocketGuild guild)
     {
         var user = guild.GetUser(id);
         newUsers.Add(user);
+        return Task.CompletedTask;
     }
 
+    public void RemoveUser(SocketGuildUser user, SocketGuild guild)
+    {
+        newUsers.Remove(user);
+    }
+
+    public bool HasUser(SocketUser user) => newUsers.Contains(user);
+    
     public async Task AssignRoles(IDiscordClient context)
     {
+        if (newUsers.Count == 0) {
+            return;
+        }
+        
         var mentionedUsers = new List<string>();
+        var shortIntroList = new List<string>();
+        var welcomeChannel = await context.GetChannel(HardcodedShit.welcomeId);
+        var messages = await welcomeChannel.GetMessagesAsync(50).FlattenAsync();
+        var messageArr = messages.ToArray();
+        
         for (int i = 0; i < newUsers.Count; i++) {
             var user = newUsers[i];
-            mentionedUsers.Add(user.Mention);
-            await user.AddRoleAsync(HardcodedShit.humanRoleId);
+            foreach (var m in messageArr) {
+                if (m == null || m.Author.Id != user.Id) {
+                    continue;
+                }
+                
+                mentionedUsers.Add(user.Mention);
+                newUsers.Remove(user);
+                if (m.Content.Length < minMessageCount) {
+                    shortIntroList.Add(user.Mention);
+                }
+                await user.AddRoleAsync(HardcodedShit.humanRoleId);
+                break;
+            }
         }
-
-        var message = WelcomeMessageStart;
-
-        foreach (var m in mentionedUsers) {
-            message += ", " + m;
+        
+        if(mentionedUsers.Count == 0) {
+            return;
         }
-
-        message += "." + WelcomeMessageEnd;
+        
         var guild = await context.GetGuildAsync(HardcodedShit.guildId);
         var phil = await guild.GetUserAsync(HardcodedShit.phil);
-        message += phil.Mention;
+        var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd} {phil.Mention}";
 
-        newUsers.Clear();
-        await context.GetChannel("welcome").Result.SendMessageAsync(message);
+
+        // foreach (var m in mentionedUsers) {
+        //     message += ", " + m;
+        // }
+        //
+        // message += "." + WelcomeMessageEnd;
+        //
+        //
+        // message += phil.Mention;
+        await welcomeChannel.SendMessageAsync(message);
+        
+        if (shortIntroList.Count > 0) {
+            var addendum = $"\n{string.Join(", ", shortIntroList)}, your intro seems a little short, maybe add a bit more? You have been granted access regardless!";
+            await welcomeChannel.SendMessageAsync(addendum);
+        }
     }
 }

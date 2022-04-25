@@ -2,7 +2,7 @@
 using Discord.Commands;
 using ScatterBot.core.Helpers;
 
-namespace ScatterBot.core.Modules;
+namespace ScatterBot.core.Modules.Command;
 
 [Group("pin")]
 [RequireUserPermission(GuildPermission.ManageChannels)]

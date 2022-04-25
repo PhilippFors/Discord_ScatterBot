@@ -1,13 +1,17 @@
-﻿using Discord.Interactions;
+﻿using System.Diagnostics;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
 using ScatterBot.core.Helpers;
 
 namespace ScatterBot.core.Modules.InteractionFramework;
 
+// [Group("grant", "access stuff")]
 public class UtilityInteractionModule : InteractionModuleBase<SocketInteractionContext>
 {
-    [SlashCommand("new_user_roles", "Assigns the 'possibly human' role to new users.")]
-    public async Task AssignRolesToNewUser()
+    [SlashCommand("nothing", "nothing")]
+    public Task Nothing()
     {
-        await RoleAssignHelper.Instance.AssignRoles(Context.Client);
+        return Task.CompletedTask;
     }
 }

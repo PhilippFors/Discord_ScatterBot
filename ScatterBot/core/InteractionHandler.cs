@@ -3,6 +3,7 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using ScatterBot.core.Helpers;
+using ScatterBot.core.Modules.InteractionFramework;
 
 namespace ScatterBot.core;
 
@@ -21,14 +22,11 @@ public class InteractionHandler
 
     public async Task InitializeAsync()
     {
-        // Process when the client is ready, so we can register our commands.
         _client.Ready += ReadyAsync;
         _handler.Log += LogAsync;
-
-        // Add the public modules that inherit InteractionModuleBase<T> to the InteractionService
+        
         await _handler.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
-
-        // Process the InteractionCreated payloads to execute Interactions commands
+        
         _client.InteractionCreated += HandleInteraction;
     }
 
@@ -49,20 +47,26 @@ public class InteractionHandler
     private async Task HandleInteraction(SocketInteraction interaction)
     {
         try {
-            // Create an execution context that matches the generic type parameter of your InteractionModuleBase<T> modules.
             var context = new SocketInteractionContext(_client, interaction);
-
-            // Execute the incoming command.
+            
             var result = await _handler.ExecuteCommandAsync(context, _services);
 
             if (!result.IsSuccess) {
                 switch (result.Error) {
                     case InteractionCommandError.UnmetPrecondition:
-                        await interaction.RespondAsync("You don't have the permission to use this, dumbass");
+                        await interaction.RespondAsync("You don't have the permission to use this, dumbass", ephemeral: true);
                         break;
                     case InteractionCommandError.UnknownCommand:
+                        await interaction.RespondAsync("Command doesn't exist.", ephemeral: true);
+                        break;
+                    case InteractionCommandError.BadArgs:
+                        await interaction.RespondAsync("Bad arguments, try again", ephemeral: true);
+                        break;
+                    case InteractionCommandError.Unsuccessful:
+                        await interaction.RespondAsync("Command unsuccessful", ephemeral: true);
                         break;
                     default:
+                        await interaction.RespondAsync("Command wasn't executed", ephemeral: true);
                         break;
                 }
             }
