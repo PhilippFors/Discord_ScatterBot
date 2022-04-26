@@ -5,19 +5,21 @@ using ScatterBot.core.Helpers;
 
 namespace ScatterBot.core.Modules.Command;
 
-[Group("purgemsg")]
+[Group("purge")]
 [RequireUserPermission(GuildPermission.ManageChannels)]
-public class MessagePurgeModule : ModuleBase<SocketCommandContext>
+public class MessagePurgeTextCommands : ModuleBase<SocketCommandContext>
 {
-    [Command("channel")]
+    [Command("channel", RunMode = RunMode.Async)]
     public async Task PurgeChannelMessages(int amount, string channelId = "")
     {
         var channel = Context.GetChannel(channelId);
 
-        var messages = await channel.GetMessagesAsync(amount + 1).FlattenAsync();
-        foreach (var ele in messages) {
+        var messages = await GetMessages(amount, channel);
+        var arr = messages.ToArray();
+
+        foreach (var ele in arr) {
             await ele.DeleteAsync();
-            await Task.Delay(100);
+            await Task.Delay(800);
         }
     }
 
@@ -27,10 +29,11 @@ public class MessagePurgeModule : ModuleBase<SocketCommandContext>
         IMessageChannel channel = Context.GetChannel(channelId);
 
         var messages = await GetMessages(amount, channel);
+
         foreach (var ele in messages) {
             if (ele.Author.Id == id) {
                 await ele.DeleteAsync();
-                await Task.Delay(100);
+                await Task.Delay(800);
             }
         }
 
@@ -45,10 +48,11 @@ public class MessagePurgeModule : ModuleBase<SocketCommandContext>
         IMessageChannel channel = Context.GetChannel(channelId);
 
         var messages = await GetMessages(amount, channel);
+
         foreach (var ele in messages) {
             if (ele.Author.Id == user.Id) {
                 await ele.DeleteAsync();
-                await Task.Delay(100);
+                await Task.Delay(500);
             }
         }
 
@@ -60,6 +64,7 @@ public class MessagePurgeModule : ModuleBase<SocketCommandContext>
     private async Task<IEnumerable<IMessage>> GetMessages(int amount, IMessageChannel channel)
     {
         var messages = await channel.GetMessagesAsync(amount).FlattenAsync();
+        await Task.Delay(TimeSpan.FromSeconds(1));
         return messages;
     }
 }

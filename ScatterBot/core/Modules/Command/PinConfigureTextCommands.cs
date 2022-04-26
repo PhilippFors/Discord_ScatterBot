@@ -6,7 +6,7 @@ namespace ScatterBot.core.Modules.Command;
 
 [Group("pin")]
 [RequireUserPermission(GuildPermission.ManageChannels)]
-public class PinConfigureModule : ModuleBase<SocketCommandContext>
+public class PinConfigureTextCommands : ModuleBase<SocketCommandContext>
 {
     [Command("monitor")]
     public async Task Pin(string channelId)

@@ -1,10 +1,8 @@
 ﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
 
 namespace ScatterBot.core.Helpers
 {
-    public partial class BonkedHelper
+    public class BonkedHelper
     {
         public static BonkedHelper Instance {
             get {
@@ -26,20 +24,20 @@ namespace ScatterBot.core.Helpers
             bonkedMembers = new List<BonkedMember>();
         }
         
-        public async Task AddBonkedMember(ulong id, double bonkTimeMinutes, SocketCommandContext context)
+        public async Task AddBonkedMember(ulong id, double bonkTimeMinutes, IDiscordClient context)
         {
-            var guild = context.Guild;
-            var guildUser = guild.GetUser(id);
+            var guild = await context.GetGuildAsync(HardcodedShit.guildId);
+            var guildUser = await guild.GetUserAsync(id);
 
             if (guildUser == null) {
                 await context.LogToChannel($"User with {id} could not be found");
                 return;
             }
 
-            await BonkInternal(guildUser, guild.Id, bonkTimeMinutes, context.Client);
+            await BonkInternal(guildUser, guild.Id, bonkTimeMinutes, context);
         }
         
-        private async Task BonkInternal(SocketGuildUser guildUser, ulong guildId, double bonkTimeMinutes, IDiscordClient client)
+        private async Task BonkInternal(IGuildUser guildUser, ulong guildId, double bonkTimeMinutes, IDiscordClient client)
         {
             bool runCheck = bonkedMembers.Count == 0;
 
@@ -51,7 +49,7 @@ namespace ScatterBot.core.Helpers
                 exist.BonkDuration += MinuteToMilliseconds(bonkTimeMinutes);
             }
             else {
-                var allRoles = guildUser.Roles.ToList();
+                var allRoles = guildUser.RoleIds.ToList();
                 allRoles.RemoveAt(0);
 
                 foreach (var role in allRoles) {
@@ -81,6 +79,24 @@ namespace ScatterBot.core.Helpers
 
             await context.LogToChannel($"Unbonked user {guildUser.Username}");
         }
+        
+        public async Task UnbonkMember(ulong id, IDiscordClient context)
+        {
+            var bonkedMember = bonkedMembers.Find(x => x.id == id);
+
+            if (bonkedMember == null) {
+                return;
+            }
+
+            var guild = await context.GetGuildAsync(bonkedMember.guildId);
+            var guildUser = await guild.GetUserAsync(bonkedMember.id);
+            await guildUser.AddRolesAsync(bonkedMember.initialRoles);
+            await guildUser.RemoveRoleAsync(bonkedRole);
+
+            RemoveBonkedMember(id);
+
+            await context.LogToChannel($"Unbonked user {guildUser.Username}");
+        }
 
         private void RemoveBonkedMember(ulong id)
         {
@@ -95,7 +111,7 @@ namespace ScatterBot.core.Helpers
             while (bonkedMembers.Count > 0) {
                 for (int i = 0; i < bonkedMembers.Count; i++) {
                     var member = bonkedMembers[i];
-                    if (DateTime.Now.TimeOfDay.TotalMilliseconds > member.endTime.TimeOfDay.TotalMilliseconds) {
+                    if (DateTime.Now.TimeOfDay.TotalMilliseconds > member.endTime) {
                         await UnbonkMember(member, client);
                     }
                 }
@@ -112,27 +128,27 @@ namespace ScatterBot.core.Helpers
 
     public class BonkedMember
     {
-        public BonkedMember(ulong id, ulong guildId, double duration, List<SocketRole> initialRoles)
+        public BonkedMember(ulong id, ulong guildId, double duration, List<ulong> initialRoles)
         {
             this.id = id;
             this.guildId = guildId;
             bonkDuration = duration;
-            startTime = DateTime.Now;
-            endTime = DateTime.Now.AddMilliseconds(BonkDuration);
+            startTime = DateTime.Now.TimeOfDay.Milliseconds;
+            endTime = startTime + duration;
             this.initialRoles = initialRoles;
         }
 
-        public List<SocketRole> initialRoles;
+        public List<ulong> initialRoles;
         public ulong id;
         public ulong guildId;
-        public DateTime startTime;
-        public DateTime endTime;
+        public double startTime;
+        public double endTime;
 
         public double BonkDuration {
             get { return bonkDuration; }
             set {
-                bonkDuration = value;
-                endTime = startTime.AddMilliseconds(bonkDuration);
+                bonkDuration += value;
+                endTime = startTime + bonkDuration;
             }
         }
 

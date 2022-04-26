@@ -81,20 +81,11 @@ public class RoleAssignHelper
         var guild = await context.GetGuildAsync(HardcodedShit.guildId);
         var phil = await guild.GetUserAsync(HardcodedShit.phil);
         var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd} {phil.Mention}";
-
-
-        // foreach (var m in mentionedUsers) {
-        //     message += ", " + m;
-        // }
-        //
-        // message += "." + WelcomeMessageEnd;
-        //
-        //
-        // message += phil.Mention;
+        
         await welcomeChannel.SendMessageAsync(message);
         
         if (shortIntroList.Count > 0) {
-            var addendum = $"\n{string.Join(", ", shortIntroList)}, your intro seems a little short, maybe add a bit more? You have been granted access regardless!";
+            var addendum = $"\n{string.Join(", ", shortIntroList)}, your intros seem a little short, maybe add a bit more? You have been granted access regardless!";
             await welcomeChannel.SendMessageAsync(addendum);
         }
     }

@@ -24,8 +24,8 @@ namespace ScatterBot.core
 
             client = new DiscordSocketClient(config);
             var f = File.OpenRead("token.txt");
-            var token = new StreamReader(f).ReadToEnd();
-            f.Dispose();
+            var token = await new StreamReader(f).ReadToEndAsync();
+            await f.DisposeAsync();
             
             client.Log += Log;
 

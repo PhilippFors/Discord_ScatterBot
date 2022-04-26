@@ -7,11 +7,11 @@ namespace ScatterBot.core.Modules.InteractionFramework;
 
 [Group("admin", "Admin tools")]
 [RequireUserPermission(GuildPermission.ModerateMembers)]
-public class AdminInteraction : InteractionModuleBase<SocketInteractionContext>
+public class MemberManagementInteractionCommands : InteractionModuleBase<SocketInteractionContext>
 {
-    [Group("server_access", "access to server")]
+    [Group("access", "access to server")]
     [RequireUserPermission(GuildPermission.ModerateMembers)]
-    public class Access : InteractionModuleBase<SocketInteractionContext>
+    public class ServerAccess : InteractionModuleBase<SocketInteractionContext>
     {
         [SlashCommand("new_users", "Assigns the 'possibly human' role to new users.")]
         public async Task AssignRolesToNewUser()
@@ -19,31 +19,31 @@ public class AdminInteraction : InteractionModuleBase<SocketInteractionContext>
             await RoleAssignHelper.Instance.AssignRoles(Context.Client);
         }
 
-        [SlashCommand("ban_username", "bans user")]
-        public async Task BanAsync(SocketUser user, string reason = "")
+        [SlashCommand("ban_username", "bans user with username")]
+        public async Task BanAsync(SocketUser user, int time = 0, string reason = "")
         {
-            await Context.Guild.AddBanAsync(user, reason: reason);
+            await Context.Guild.AddBanAsync(user, time, reason);
             await Context.Client.LogToChannel($"{user.Username} has been banned.");
         }
 
-        [SlashCommand("ban_id", "bans user")]
-        public async Task BanAsync(ulong id, string reason = "")
+        [SlashCommand("ban_id", "bans user with id")]
+        public async Task BanAsync(ulong id, int time = 0, string reason = "")
         {
-            await Context.Guild.AddBanAsync(id, reason: reason);
+            await Context.Guild.AddBanAsync(id, time, reason);
             await Context.Client.LogToChannel($"{id} has been banned.");
         }
     }
 
-    [SlashCommand("bonk_id", "bonks user")]
+    [SlashCommand("bonk_id", "bonks user with id")]
     public async Task Bonk(ulong id, double time = 1)
     {
-        await BonkedHelper.Instance.AddBonkedMember(id, time, Context);
+        await BonkedHelper.Instance.AddBonkedMember(id, time, Context.Client);
     }
 
-    [SlashCommand("bonk_username", "bonks user")]
+    [SlashCommand("bonk_username", "bonks user by mention")]
     public async Task Bonk(SocketUser user, double time = 1)
     {
-        await BonkedHelper.Instance.AddBonkedMember(user.Id, time, Context);
+        await BonkedHelper.Instance.AddBonkedMember(user.Id, time, Context.Client);
     }
 
     [SlashCommand("unbonk_id", "unbonk user")]
