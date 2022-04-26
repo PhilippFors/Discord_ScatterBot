@@ -1,6 +1,8 @@
-﻿using System.Reflection;
+﻿using System.Formats.Asn1;
+using System.Reflection;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 using ScatterBot.core.Helpers;
 
@@ -20,6 +22,7 @@ public class CommandHandler
     public async Task InstallCommandsAsync()
     {
         client.MessageReceived += HandleCommandAsync;
+        client.MessageReceived += HandleBonkedMessages;
         client.MessageUpdated += HandleMsgUpdate;
         client.UserJoined += ctx => RoleAssignHelper.Instance.AddUser(ctx.Id, ctx.Guild);
         
@@ -51,5 +54,25 @@ public class CommandHandler
             context: context,
             argPos: argPos,
             services: null);
+    }
+
+    private async Task HandleBonkedMessages(SocketMessage message)
+    {
+        if (message.Channel.Id != HardcodedShit.welcomeId) {
+            return;
+        }
+        
+        var author = message.Author;
+        if (BonkedHelper.Instance.IsBonked(author.Id)) {
+            var m = await message.Channel.SendMessageAsync($"No talking for you {author.Mention}.", messageReference: message.Reference);
+            await message.DeleteAsync();
+            WaitDeleteMessage(m);
+        }
+    }
+
+    private async Task WaitDeleteMessage(RestUserMessage m)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(15));
+        await m.DeleteAsync();
     }
 }

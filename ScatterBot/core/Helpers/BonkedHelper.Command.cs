@@ -23,6 +23,12 @@ namespace ScatterBot.core.Helpers
         {
             bonkedMembers = new List<BonkedMember>();
         }
+
+        public bool IsBonked(ulong id)
+        {
+            var find = bonkedMembers.Find(x => x.id == id);
+            return find != null;
+        }
         
         public async Task AddBonkedMember(ulong id, double bonkTimeMinutes, IDiscordClient context)
         {
@@ -36,13 +42,14 @@ namespace ScatterBot.core.Helpers
 
             await BonkInternal(guildUser, guild.Id, bonkTimeMinutes, context);
         }
-        
-        private async Task BonkInternal(IGuildUser guildUser, ulong guildId, double bonkTimeMinutes, IDiscordClient client)
+
+        private async Task BonkInternal(IGuildUser guildUser, ulong guildId, double bonkTimeMinutes,
+            IDiscordClient client)
         {
             bool runCheck = bonkedMembers.Count == 0;
 
             var id = guildUser.Id;
-        
+
             var exist = bonkedMembers.Find(x => x.id == id);
 
             if (exist != null) {
@@ -65,21 +72,22 @@ namespace ScatterBot.core.Helpers
                 CheckMembers(client);
             }
 
-            await client.LogToChannel($"Bonked user {guildUser.Username} for {bonkTimeMinutes.ToString("0.0")} Minutes");
+            await client.LogToChannel(
+                $"Bonked user {guildUser.Username} for {bonkTimeMinutes.ToString("0.0")} Minutes");
         }
-        
+
         public async Task UnbonkMember(BonkedMember id, IDiscordClient context)
         {
+            RemoveBonkedMember(id.id);
+
             var guild = await context.GetGuildAsync(id.guildId);
             var guildUser = await guild.GetUserAsync(id.id);
             await guildUser.AddRolesAsync(id.initialRoles);
             await guildUser.RemoveRoleAsync(bonkedRole);
 
-            RemoveBonkedMember(id.id);
-
             await context.LogToChannel($"Unbonked user {guildUser.Username}");
         }
-        
+
         public async Task UnbonkMember(ulong id, IDiscordClient context)
         {
             var bonkedMember = bonkedMembers.Find(x => x.id == id);
@@ -87,13 +95,12 @@ namespace ScatterBot.core.Helpers
             if (bonkedMember == null) {
                 return;
             }
+            RemoveBonkedMember(id);
 
             var guild = await context.GetGuildAsync(bonkedMember.guildId);
             var guildUser = await guild.GetUserAsync(bonkedMember.id);
             await guildUser.AddRolesAsync(bonkedMember.initialRoles);
             await guildUser.RemoveRoleAsync(bonkedRole);
-
-            RemoveBonkedMember(id);
 
             await context.LogToChannel($"Unbonked user {guildUser.Username}");
         }
@@ -119,7 +126,7 @@ namespace ScatterBot.core.Helpers
                 await Task.Delay(250);
             }
         }
-        
+
         private double MinuteToMilliseconds(double time)
         {
             return time * 60 * 1000;
@@ -133,7 +140,7 @@ namespace ScatterBot.core.Helpers
             this.id = id;
             this.guildId = guildId;
             bonkDuration = duration;
-            startTime = DateTime.Now.TimeOfDay.Milliseconds;
+            startTime = DateTime.Now.TimeOfDay.TotalMilliseconds;
             endTime = startTime + duration;
             this.initialRoles = initialRoles;
         }
