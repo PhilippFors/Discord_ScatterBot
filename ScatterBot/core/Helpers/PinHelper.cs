@@ -44,16 +44,16 @@ public class PinHelper
             return;
         }
 
-        var guild = client.GetGuild(967532421975273563);
-        var audit = await guild.GetAuditLogsAsync(1, actionType: ActionType.MessagePinned).FlattenAsync();
-        var auditLog = audit.FirstOrDefault();
-        var guildUser = guild.GetUser(auditLog.User.Id);
-        var perms = guildUser.GuildPermissions;
-        
-        if(!perms.Has(GuildPermission.ManageChannels))
-        {
-            return;
-        }
+        // var guild = client.GetGuild(967532421975273563);
+        // var audit = await guild.GetAuditLogsAsync(1, actionType: ActionType.MessagePinned).FlattenAsync();
+        // var auditLog = audit.FirstOrDefault();
+        // var guildUser = guild.GetUser(auditLog.User.Id);
+        // var perms = guildUser.GuildPermissions;
+        //
+        // if(!perms.Has(GuildPermission.ManageChannels))
+        // {
+        //     return;
+        // }
 
         if (message.IsPinned) {
             var attachments = message.Attachments.ToList();
@@ -61,9 +61,9 @@ public class PinHelper
             await message.UnpinAsync();
 
             var postChannel = client.GetChannel(archiveChannel); // posting copy in here
-            var messageChannel = postChannel as ISocketMessageChannel;
+            var messageChannel = postChannel as IMessageChannel;
 
-            await messageChannel.SendMessageAsync($"**Posted by** {m.Author.Mention}\n{m.Content}");
+            await messageChannel.SendMessageAsync($"**Shared by:** {m.Author.Mention}\n{m.Content}");
             var webClient = new WebClient();
             foreach (var att in attachments) {
                 using (webClient) {

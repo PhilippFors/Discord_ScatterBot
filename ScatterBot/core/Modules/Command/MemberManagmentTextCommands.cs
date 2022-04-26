@@ -34,8 +34,7 @@ public class MemberManagementTextCommands : ModuleBase<SocketCommandContext>
             }
 
             await Context.Message.DeleteAsync();
-            await Context.GetChannel("welcome")
-                .SendMessageAsync($"Welcome to the server {string.Join(", ", mentions)}!");
+            await Context.GetChannel("welcome").SendMessageAsync($"Hi {string.Join(", ", mentions)}. Don't break anything.");
         }
     }
 

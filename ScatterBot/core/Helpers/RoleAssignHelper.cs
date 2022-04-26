@@ -19,10 +19,9 @@ public class RoleAssignHelper
 
     private List<SocketGuildUser> newUsers;
 
-    private string WelcomeMessageStart => "Welcome to the server";
+    private string WelcomeMessageStart => "Hello and welcome";
 
-    private string WelcomeMessageEnd =>
-        "\nYou now have a role to access the server. Stick to the rules and have fun! If you are interested in helping out with playtesting, ask";
+    private string WelcomeMessageEnd => "\nYou got access now. Follow rules and use brain please.";
 
     private int minMessageCount = 20;
 
