@@ -4,11 +4,11 @@ using DSharpPlus.SlashCommands;
 
 namespace ScatterBot_v2.core.Modules.InteractionFramework;
 
-public class UtilityInteractionModule : BaseCommandModule
+public class UtilityInteractionModule : ApplicationCommandModule
 {
-    [SlashCommand("nothing", "nothing")]
-    public Task Nothing()
-    {
-        return Task.CompletedTask;
-    }
+    // [SlashCommand("nothing", "nothing")]
+    // public Task Nothing()
+    // {
+    //     return Task.CompletedTask;
+    // }
 }

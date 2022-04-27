@@ -8,8 +8,6 @@ using Microsoft.Extensions.Logging;
 using ScatterBot_v2.core;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
-using Serilog;
-using Serilog.Extensions.Logging;
 
 namespace ScatterBot_v2
 {
@@ -17,7 +15,7 @@ namespace ScatterBot_v2
     {
         private DiscordClient _client;
         private CommandsNextExtension _commands;
-
+        
         // Entry point
         public static void Main() => new Program().MainAsync().GetAwaiter().GetResult();
 
@@ -45,7 +43,6 @@ namespace ScatterBot_v2
 
             await InitializeHandlers();
             await _client.ConnectAsync();
-
             _client.ChannelPinsUpdated += HandleChannelPinsUpdated;
             _client.MessageCreated += HandleMessagesCreated;
             await Task.Delay(-1);
