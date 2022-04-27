@@ -12,11 +12,16 @@ namespace ScatterBot.core
         private CommandService service;
         private InteractionService interaction;
         private InteractionHandler interactionHandler;
+        private Logger logger;
+        
         public static void Main(string[] args) =>
             new Program().MainAsync().GetAwaiter().GetResult();
 
-        public async Task MainAsync()
+        private async Task MainAsync()
         {
+            logger = new Logger();
+            await logger.CreateFile();
+            
             var config = new DiscordSocketConfig() {
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildMembers | GatewayIntents.GuildMessages,
                 MessageCacheSize = 400,
@@ -27,11 +32,14 @@ namespace ScatterBot.core
             var token = await new StreamReader(f).ReadToEndAsync();
             await f.DisposeAsync();
             
-            client.Log += Log;
-
+            client.Log += logger.LogToConsole;
+            client.Log += logger.LogToFile;
+            
             await client.LoginAsync(TokenType.Bot, token);
             await client.StartAsync();
            
+            // TODO: Setup dependency injection
+            
             service = new CommandService();
             commandHandler = new CommandHandler(client, service);
 
@@ -44,10 +52,6 @@ namespace ScatterBot.core
             await Task.Delay(-1);
         }
 
-        private Task Log(LogMessage msg)
-        {
-            Console.WriteLine(msg.ToString());
-            return Task.CompletedTask;
-        }
+
     }
 }

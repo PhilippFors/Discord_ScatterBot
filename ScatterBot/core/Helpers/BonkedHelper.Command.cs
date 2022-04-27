@@ -1,4 +1,5 @@
 ﻿using Discord;
+using ScatterBot.core.Extensions;
 
 namespace ScatterBot.core.Helpers
 {

@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using ScatterBot.core.Extensions;
 using ScatterBot.core.Helpers;
 
 namespace ScatterBot.core.Modules.InteractionFramework;
@@ -16,7 +17,19 @@ public class MemberManagementInteractionCommands : InteractionModuleBase<SocketI
         [SlashCommand("new_users", "Assigns the 'possibly human' role to new users.")]
         public async Task AssignRolesToNewUser()
         {
-            await RoleAssignHelper.Instance.AssignRoles(Context.Client);
+            await NewUserHelper.Instance.AssignRoles(Context.Client);
+        }
+
+        [SlashCommand("automate_access", "Enables automatic accepting of people who sent introduction in #welcome.")]
+        public async Task AutomateWelcome()
+        {
+            NewUserHelper.Instance.StartAutomateUserWelcome();
+        }
+
+        [SlashCommand("stop_automate_access", "Disables automatic accepting of people who sent introduction in #welcome.")]
+        public async Task StopAutomateWelcome()
+        {
+            NewUserHelper.Instance.StopAutomateUserWelcome();
         }
 
         [SlashCommand("ban_username", "bans user with username")]

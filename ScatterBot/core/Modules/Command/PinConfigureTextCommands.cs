@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using ScatterBot.core.Extensions;
 using ScatterBot.core.Helpers;
 
 namespace ScatterBot.core.Modules.Command;

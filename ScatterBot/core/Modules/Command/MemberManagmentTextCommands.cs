@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using ScatterBot.core.Extensions;
 using ScatterBot.core.Helpers;
 
 namespace ScatterBot.core.Modules.Command;
@@ -15,7 +16,7 @@ public class MemberManagementTextCommands : ModuleBase<SocketCommandContext>
         [Command("direct")]
         public async Task GrantAccess(SocketUser user, params IUser[] users)
         {
-            if (!RoleAssignHelper.Instance.HasUser(user)) {
+            if (!NewUserHelper.Instance.HasUser(user)) {
                 return;
             }
 
@@ -23,12 +24,12 @@ public class MemberManagementTextCommands : ModuleBase<SocketCommandContext>
             var guildUser = Context.Guild.GetUser(user.Id);
             mentions.Add(guildUser.Mention);
             await guildUser.AddRoleAsync(HardcodedShit.humanRoleId);
-            RoleAssignHelper.Instance.RemoveUser(guildUser, Context.Guild);
+            NewUserHelper.Instance.RemoveUser(guildUser, Context.Guild);
             Console.WriteLine("hllo");
 
             foreach (var u in users) {
                 guildUser = Context.Guild.GetUser(u.Id);
-                RoleAssignHelper.Instance.RemoveUser(guildUser, Context.Guild);
+                NewUserHelper.Instance.RemoveUser(guildUser, Context.Guild);
                 mentions.Add(guildUser.Mention);
                 await guildUser.AddRoleAsync(HardcodedShit.humanRoleId);
             }

@@ -2,8 +2,6 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using ScatterBot.core.Helpers;
-using ScatterBot.core.Modules.InteractionFramework;
 
 namespace ScatterBot.core;
 
@@ -30,8 +28,7 @@ public class InteractionHandler
         _client.InteractionCreated += HandleInteraction;
     }
 
-    private async Task LogAsync(LogMessage log)
-        => Console.WriteLine(log);
+    private async Task LogAsync(LogMessage log) => Console.WriteLine(log);
 
     private async Task ReadyAsync()
     {

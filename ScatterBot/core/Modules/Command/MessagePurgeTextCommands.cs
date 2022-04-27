@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using ScatterBot.core.Helpers;
+using ScatterBot.core.Extensions;
 
 namespace ScatterBot.core.Modules.Command;
 

@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+using ScatterBot.core.Extensions;
 using ScatterBot.core.Helpers;
 
 namespace ScatterBot.core;
@@ -22,9 +23,8 @@ public class CommandHandler
     public async Task InstallCommandsAsync()
     {
         client.MessageReceived += HandleCommandAsync;
-        client.MessageReceived += HandleBonkedMessages;
         client.MessageUpdated += HandleMsgUpdate;
-        client.UserJoined += ctx => RoleAssignHelper.Instance.AddUser(ctx.Id, ctx.Guild);
+        client.UserJoined += ctx => NewUserHelper.Instance.AddUser(ctx.Id, ctx.Guild);
         
         await commands.AddModulesAsync(
             assembly: Assembly.GetEntryAssembly(),
@@ -33,18 +33,35 @@ public class CommandHandler
 
     private async Task HandleMsgUpdate(Cacheable<IMessage,ulong> messages, SocketMessage m, ISocketMessageChannel channel)
     {
+       
         await PinHelper.Instance.Pin(m, channel, client);
     }
 
     private async Task HandleCommandAsync(SocketMessage socketMessage)
     {
+        
+        if (socketMessage.Channel.Id == HardcodedShit.welcomeId) {
+            
+            // Bonked users can still type in welcome so this bonks 'em again
+            var author = socketMessage.Author;
+            if (BonkedHelper.Instance.IsBonked(author.Id)) {
+                var response = await socketMessage.Channel.SendMessageAsync($"No talking for you {author.Mention}.");
+                await socketMessage.DeleteAsync();
+                response.WaitDeleteMessage(15);
+            }
+
+            // new user messages will be logged and can be used later for automatic acceptance
+            NewUserHelper.Instance.AddWelcomeMessage(socketMessage, client);
+        }
+        
         var message = socketMessage as SocketUserMessage;
         if (message == null) {
             return;
         }
-
+        
         int argPos = 0;
         
+        // Check if the message has a valid command prefix
         if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos)) || message.Author.IsBot) {
             return;
         }
@@ -55,24 +72,6 @@ public class CommandHandler
             argPos: argPos,
             services: null);
     }
+    
 
-    private async Task HandleBonkedMessages(SocketMessage message)
-    {
-        if (message.Channel.Id != HardcodedShit.welcomeId) {
-            return;
-        }
-        
-        var author = message.Author;
-        if (BonkedHelper.Instance.IsBonked(author.Id)) {
-            var m = await message.Channel.SendMessageAsync($"No talking for you {author.Mention}.", messageReference: message.Reference);
-            await message.DeleteAsync();
-            WaitDeleteMessage(m);
-        }
-    }
-
-    private async Task WaitDeleteMessage(RestUserMessage m)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(15));
-        await m.DeleteAsync();
-    }
 }

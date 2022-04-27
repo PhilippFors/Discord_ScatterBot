@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Discord;
 using Discord.WebSocket;
+using ScatterBot.core.Extensions;
 
 namespace ScatterBot.core.Helpers;
 
