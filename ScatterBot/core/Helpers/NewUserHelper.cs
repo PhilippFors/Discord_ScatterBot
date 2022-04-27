@@ -16,18 +16,18 @@ public class NewUserHelper
         }
     }
 
-    public bool automateUserWelcome;
 
     private static NewUserHelper? instance;
 
-    private List<SocketGuildUser> newUsers;
-    private List<IMessage> userMessages;
+    private readonly List<SocketGuildUser> newUsers;
+    private readonly List<IMessage> userMessages;
 
     private string WelcomeMessageStart => "Hello and welcome";
 
     private string WelcomeMessageEnd => "\nYou got access now. Follow rules and use brain please.";
 
     private int minMessageCount = 20;
+    private bool automateUserWelcome;
 
     public NewUserHelper()
     {
@@ -48,11 +48,10 @@ public class NewUserHelper
     public async Task AddWelcomeMessage(SocketMessage message, DiscordSocketClient client)
     {
         var guildUser = message.Author as SocketGuildUser;
-        if(guildUser.HasRole("Possibly human"))
-        {
+        if (guildUser.HasRole(HardcodedShit.humanRoleId)) {
             return;
         }
-        
+
         if (automateUserWelcome && userMessages.Count == 0) {
             await Task.Delay(TimeSpan.FromMinutes(5));
             await AssignRoles(client);
@@ -64,10 +63,10 @@ public class NewUserHelper
     public Task AddUser(ulong id, SocketGuild guild)
     {
         var user = guild.GetUser(id);
-        if (user.HasRole("Possibly human")) {
+        if (user.HasRole(HardcodedShit.humanRoleId)) {
             return Task.CompletedTask;
         }
-        
+
         newUsers.Add(user);
         return Task.CompletedTask;
     }

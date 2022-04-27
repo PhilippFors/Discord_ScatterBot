@@ -1,12 +1,7 @@
-﻿using System.Diagnostics;
-using Discord;
-using Discord.Interactions;
-using Discord.WebSocket;
-using ScatterBot.core.Helpers;
+﻿using Discord.Interactions;
 
 namespace ScatterBot.core.Modules.InteractionFramework;
 
-// [Group("grant", "access stuff")]
 public class UtilityInteractionModule : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("nothing", "nothing")]

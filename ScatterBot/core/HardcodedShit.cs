@@ -11,6 +11,7 @@ public static class HardcodedShit
     
     // roles
     public static readonly ulong humanRoleId = 967584069430956072;
+    public static readonly ulong bonkedRoleId = 967594914630217798;
     
     //users
     public static readonly ulong phil = 173193609795862529;

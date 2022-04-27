@@ -17,8 +17,7 @@ namespace ScatterBot.core.Helpers
 
         private static BonkedHelper? instance;
 
-        private List<BonkedMember> bonkedMembers;
-        private ulong bonkedRole => 967594914630217798;
+        private readonly List<BonkedMember> bonkedMembers;
 
         public BonkedHelper()
         {
@@ -30,7 +29,7 @@ namespace ScatterBot.core.Helpers
             var find = bonkedMembers.Find(x => x.id == id);
             return find != null;
         }
-        
+
         public async Task AddBonkedMember(ulong id, double bonkTimeMinutes, IDiscordClient context)
         {
             var guild = await context.GetGuildAsync(HardcodedShit.guildId);
@@ -64,7 +63,7 @@ namespace ScatterBot.core.Helpers
                     await guildUser.RemoveRoleAsync(role);
                 }
 
-                await guildUser.AddRoleAsync(bonkedRole);
+                await guildUser.AddRoleAsync(HardcodedShit.bonkedRoleId);
                 var bonked = new BonkedMember(id, guildId, MinuteToMilliseconds(bonkTimeMinutes), allRoles);
                 bonkedMembers.Add(bonked);
             }
@@ -84,7 +83,7 @@ namespace ScatterBot.core.Helpers
             var guild = await context.GetGuildAsync(id.guildId);
             var guildUser = await guild.GetUserAsync(id.id);
             await guildUser.AddRolesAsync(id.initialRoles);
-            await guildUser.RemoveRoleAsync(bonkedRole);
+            await guildUser.RemoveRoleAsync(HardcodedShit.bonkedRoleId);
 
             await context.LogToChannel($"Unbonked user {guildUser.Username}");
         }
@@ -96,12 +95,13 @@ namespace ScatterBot.core.Helpers
             if (bonkedMember == null) {
                 return;
             }
+
             RemoveBonkedMember(id);
 
             var guild = await context.GetGuildAsync(bonkedMember.guildId);
             var guildUser = await guild.GetUserAsync(bonkedMember.id);
             await guildUser.AddRolesAsync(bonkedMember.initialRoles);
-            await guildUser.RemoveRoleAsync(bonkedRole);
+            await guildUser.RemoveRoleAsync(HardcodedShit.bonkedRoleId);
 
             await context.LogToChannel($"Unbonked user {guildUser.Username}");
         }

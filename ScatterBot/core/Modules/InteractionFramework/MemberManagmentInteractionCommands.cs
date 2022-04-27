@@ -26,7 +26,8 @@ public class MemberManagementInteractionCommands : InteractionModuleBase<SocketI
             NewUserHelper.Instance.StartAutomateUserWelcome();
         }
 
-        [SlashCommand("stop_automate_access", "Disables automatic accepting of people who sent introduction in #welcome.")]
+        [SlashCommand("stop_automate_access",
+            "Disables automatic accepting of people who sent introduction in #welcome.")]
         public async Task StopAutomateWelcome()
         {
             NewUserHelper.Instance.StopAutomateUserWelcome();

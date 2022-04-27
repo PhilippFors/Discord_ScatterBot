@@ -4,13 +4,14 @@ using Discord.WebSocket;
 using ScatterBot.core.Extensions;
 using ScatterBot.core.Helpers;
 
-namespace ScatterBot.core.Modules.Command;
+namespace ScatterBot.core.Modules.TextBasedCommands;
 
 [Group("admin")]
 [RequireUserPermission(GuildPermission.ModerateMembers)]
 public class MemberManagementTextCommands : ModuleBase<SocketCommandContext>
 {
     [Group("access")]
+    [RequireUserPermission(GuildPermission.ModerateMembers)]
     public class ServerAccess : ModuleBase<SocketCommandContext>
     {
         [Command("direct")]

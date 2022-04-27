@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using ScatterBot.core.Extensions;
 
-namespace ScatterBot.core.Modules.Command;
+namespace ScatterBot.core.Modules.TextBasedCommands;
 
 [Group("purge")]
 [RequireUserPermission(GuildPermission.ManageChannels)]

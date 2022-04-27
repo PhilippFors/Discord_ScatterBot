@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using ScatterBot.core.Handlers;
 
 namespace ScatterBot.core
 {
@@ -20,7 +21,7 @@ namespace ScatterBot.core
         private async Task MainAsync()
         {
             logger = new Logger();
-            await logger.CreateFile();
+            await logger.CreateNewFile();
             
             var config = new DiscordSocketConfig() {
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildMembers | GatewayIntents.GuildMessages,
@@ -51,7 +52,5 @@ namespace ScatterBot.core
 
             await Task.Delay(-1);
         }
-
-
     }
 }
