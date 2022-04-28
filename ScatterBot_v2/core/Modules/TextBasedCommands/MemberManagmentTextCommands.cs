@@ -5,6 +5,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using ScatterBot_v2.core.Data;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
 
@@ -14,47 +15,53 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands;
 [RequirePermissions(Permissions.ModerateMembers)]
 public class MemberManagementTextCommands : BaseCommandModule
 {
+    public BonkedHelper bonkedHelper { private get; set; }
+    
     [Group("access")]
     [RequirePermissions(Permissions.ModerateMembers)]
     public class ServerAccess : BaseCommandModule
     {
+        public NewUserHelper newUserHelper { private get; set; }
+
         [Command("direct")]
         public async Task GrantAccess(CommandContext context, params DiscordMember[] users)
         {
             var mentions = new List<string>();
+            var accessRole = Roles.accessRoleId;
             foreach (var user in users) {
-                if (!NewUserHelper.Instance.HasUser(user)) {
-                    return;
+                if (user.HasRole(accessRole)) {
+                    continue;
                 }
 
-                NewUserHelper.Instance.RemoveUser(user, context.Guild);
+                newUserHelper.RemoveUser(user.Id);
                 mentions.Add(user.Mention);
                 await user.GrantRoleAsync(
-                    await context.Client.GetRole(HardcodedShit.humanRoleId)
+                    context.Guild.GetRole(accessRole)
                 );
             }
 
+            var channel = context.Guild.GetChannel(Channels.welcomeChannelId);
+            var m = string.Join(", ", mentions);
+            channel.SendMessageAsync($"Hi {m}. Don't break anything.");
             await context.Message.DeleteAsync();
-            var channel = await context.Client.GetChannel("welcome");
-            await channel.SendMessageAsync($"Hi {string.Join(", ", mentions)}. Don't break anything.");
         }
 
         [Command("newusers")]
         public async Task AssignRolesToNewUser(CommandContext context)
         {
-            await NewUserHelper.Instance.AssignRoles(context.Client);
+            await newUserHelper.AssignRoles(context.Client);
         }
 
         [Command("automateaccess")]
         public async Task AutomateWelcome()
         {
-            NewUserHelper.Instance.StartAutomateUserWelcome();
+            newUserHelper.StartAutomateUserWelcome();
         }
 
         [Command("stopautomateaccess")]
         public async Task StopAutomateWelcome()
         {
-            NewUserHelper.Instance.StopAutomateUserWelcome();
+            newUserHelper.StopAutomateUserWelcome();
         }
 
         [Command("banusername")]
@@ -75,25 +82,25 @@ public class MemberManagementTextCommands : BaseCommandModule
     [Command("bonkid")]
     public async Task Bonk(CommandContext context, ulong id, double time = 1)
     {
-        await BonkedHelper.Instance.AddBonkedMember(id, time, context.Client);
+        await bonkedHelper.AddBonkedMember(id, time);
     }
 
-    [Command("bonkusername")]
+    [Command("bonk")]
     public async Task Bonk(CommandContext context, DiscordMember user, double time = 1)
     {
-        await BonkedHelper.Instance.AddBonkedMember(user.Id, time, context.Client);
+        await bonkedHelper.AddBonkedMember(user.Id, time);
     }
 
     [Command("unbonkid")]
     public async Task UnBonk(CommandContext context, ulong id)
     {
-        await BonkedHelper.Instance.UnbonkMember(id, context.Client);
+        await bonkedHelper.UnbonkMember(id);
     }
 
-    [Command("unbonkuser")]
+    [Command("unbonk")]
     public async Task UnBonk(CommandContext context, DiscordMember user)
     {
-        await BonkedHelper.Instance.UnbonkMember(user.Id, context.Client);
+        await bonkedHelper.UnbonkMember(user.Id);
     }
 
     [Command("addrole")]
@@ -107,7 +114,7 @@ public class MemberManagementTextCommands : BaseCommandModule
     {
         await user.RevokeRoleAsync(roleName);
     }
-
+    
     [Command("addrolebulk")]
     public async Task AddRoleBulk(CommandContext context, string roleName, params DiscordMember[] users)
     {
@@ -118,5 +125,12 @@ public class MemberManagementTextCommands : BaseCommandModule
 
         await context.Client.LogToChannel($"Granted {role} to {string.Join(", ", users.Select(u => u.Username))}");
         await context.Message.DeleteAsync();
+    }
+    
+    [Command("bonkamount")]
+    public async Task BonkAmount(CommandContext context)
+    {
+        var amount = Moderation.bonkedMembers.Count;
+        await context.Client.LogToChannel($"{amount.ToString()} people are bonked right now.");
     }
 }

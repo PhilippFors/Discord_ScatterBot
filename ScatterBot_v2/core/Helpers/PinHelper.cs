@@ -12,18 +12,6 @@ namespace ScatterBot_v2.core.Helpers;
 
 public class PinHelper
 {
-    public static PinHelper Instance {
-        get {
-            if (instance == null) {
-                instance = new PinHelper();
-            }
-
-            return instance;
-        }
-    }
-
-    private static PinHelper? instance;
-
     private readonly List<ulong> monitoredChannels;
     private ulong archiveChannel;
 

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using ScatterBot_v2.core.Data;
 
 namespace ScatterBot_v2.core.Extensions;
 
@@ -13,8 +15,7 @@ public static class DiscordGuildExtensions
     public static DiscordRole GetRole(this DiscordGuild guild, string id)
     {
         var roles = guild.Roles;
-        foreach(var role in roles)
-        {
+        foreach (var role in roles) {
             if (role.Value.Name == id) {
                 return role.Value;
             }
@@ -22,10 +23,18 @@ public static class DiscordGuildExtensions
 
         return null;
     }
-    
-    public static async Task<DiscordChannel> GetChannel(this DiscordGuild guild, ulong id)
+
+    public static DiscordChannel GetChannel(this DiscordGuild guild, ulong id)
     {
-        var channel = guild.GetChannel(id);
+        DiscordChannel channel;
+
+        if (id == 0) {
+            channel = guild.Channels.First().Value;
+        }
+        else {
+            channel = guild.GetChannel(id);
+        }
+
         return channel;
     }
 
@@ -34,8 +43,8 @@ public static class DiscordGuildExtensions
         DiscordChannel channel = null;
 
         if (channelId != "") {
-            var c = await guild.GetChannelsAsync();
-            foreach (var ch in c) {
+            var channels = await guild.GetChannelsAsync();
+            foreach (var ch in channels) {
                 if (ch.Name == channelId) {
                     channel = ch;
                     break;
@@ -44,16 +53,33 @@ public static class DiscordGuildExtensions
         }
 
         if (channel == null) {
-            await guild.LogToChannel($"Channel with name {channelId} not found.");
-            return null;
+            channel = guild.Channels.First().Value;
         }
 
         return channel;
     }
 
+    public static async Task BotLog(this DiscordGuild guild, string msg)
+    {
+        var botLog = guild.GetChannel(Channels.logChannelId);
+        await botLog.SendMessageAsync(msg);
+    }
+
     public static async Task LogToChannel(this DiscordGuild guild, string msg)
     {
-        var botLog = await guild.GetChannel("bot-logs");
-        await botLog.SendMessageAsync(msg);
+        var channel = guild.GetChannel(Channels.logChannelId);
+        await channel.SendMessageAsync(msg);
+    }
+    
+    public static async Task SendMsg(this DiscordGuild guild, ulong channelId, string msg)
+    {
+        var channel = guild.GetChannel(channelId);
+        await channel.SendMessageAsync(msg);
+    }
+    
+    public static async Task SendMsg(this DiscordGuild guild, string channelId, string msg)
+    {
+        var channel = await guild.GetChannel(channelId);
+        await channel.SendMessageAsync(msg);
     }
 }

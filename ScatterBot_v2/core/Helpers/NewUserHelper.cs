@@ -3,27 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
+using ScatterBot_v2.core.Data;
 using ScatterBot_v2.core.Extensions;
+using ScatterBot_v2.core.Serialization;
 
 namespace ScatterBot_v2.core.Helpers;
 
 public class NewUserHelper
 {
-    public static NewUserHelper Instance {
-        get {
-            if (instance == null) {
-                instance = new NewUserHelper();
-            }
-
-            return instance;
-        }
-    }
-
-    private static NewUserHelper? instance;
-
-    private readonly List<DiscordMember> newUsers;
-    private readonly List<DiscordMessage> userMessages;
-
     private string WelcomeMessageStart => "Hello and welcome";
 
     private string WelcomeMessageEnd => "\nYou got access now. Follow rules and use brain please.";
@@ -31,10 +18,14 @@ public class NewUserHelper
     private int minMessageCount = 20;
     private bool automateUserWelcome;
 
+    private ulong AccessRole => Roles.accessRoleId;
+    private List<ulong> newUsers => Moderation.newUsers;
+    private List<MessageSaveData> introductions => Moderation.newIntroductions;
+    
     public NewUserHelper()
     {
-        newUsers = new List<DiscordMember>();
-        userMessages = new List<DiscordMessage>();
+        Moderation.newIntroductions = new List<MessageSaveData>();
+        Moderation.newUsers = new List<ulong>();
     }
 
     public void StartAutomateUserWelcome()
@@ -50,64 +41,68 @@ public class NewUserHelper
     public async Task AddWelcomeMessage(DiscordMessage message, DiscordClient client)
     {
         var user = message.Author as DiscordMember;
-        if (user.HasRole(HardcodedShit.humanRoleId)) {
+        if (user.HasRole(AccessRole)) {
             return;
         }
 
-        if (automateUserWelcome && userMessages.Count == 0) {
+        if (automateUserWelcome && introductions.Count == 0) {
             await Task.Delay(TimeSpan.FromMinutes(5));
             await AssignRoles(client);
         }
 
-        userMessages.Add(message);
+        introductions.Add(new MessageSaveData() {
+            channel = message.ChannelId,
+            messageId = message.Id,
+            userId = user.Id
+        });
     }
 
-    public async Task AddUser(ulong id, DiscordGuild guild)
+    public Task AddUser(ulong id)
     {
-        var user = await guild.GetMemberAsync(id);
-        if (user.HasRole(HardcodedShit.humanRoleId)) {
-            return;
+        newUsers.Add(id);
+        return Task.CompletedTask;
+    }
+
+    public void RemoveUser(ulong user)
+    {
+        if (newUsers.Contains(user)) {
+            newUsers.Remove(user);
         }
-
-        newUsers.Add(user);
     }
 
-    public void RemoveUser(DiscordMember user, DiscordGuild guild)
-    {
-        newUsers.Remove(user);
-    }
-
-    public bool HasUser(DiscordMember user) => newUsers.Contains(user);
+    public bool HasUser(DiscordMember user) => newUsers.Contains(user.Id);
 
     public async Task AssignRoles(DiscordClient context)
     {
-        if (userMessages.Count == 0) {
+        if (introductions.Count == 0) {
             return;
         }
 
         var mentionedUsers = new List<string>();
         var shortIntroList = new List<string>();
 
-        var guild = await context.GetGuildAsync(HardcodedShit.guildId);
-        var welcomeChannel = guild.GetChannel(HardcodedShit.welcomeId);
+        var guild = await context.GetGuildAsync(Guild.guildId);
+        var welcomeChannel = guild.GetChannel(AccessRole);
 
-        for (int i = 0; i < userMessages.Count; i++) {
-            var m = userMessages[i];
-            var user = await guild.GetMemberAsync(m.Id);
-            if (m.Author.Id != user.Id) {
+        for (int i = 0; i < introductions.Count; i++) {
+            var data = introductions[i];
+            var userMessage = await welcomeChannel.GetMessageAsync(data.messageId);
+            var user = await guild.GetMemberAsync(data.userId);
+
+            if (user.HasRole(Roles.accessRoleId)) {
                 continue;
             }
-
+            
             mentionedUsers.Add(user.Mention);
-            newUsers.Remove(user);
-            userMessages.Remove(m);
+            newUsers.Remove(user.Id);
+            introductions.Remove(data);
 
-            if (m.Content.Length < minMessageCount) {
+            if (userMessage.Content.Length < minMessageCount) {
                 shortIntroList.Add(user.Mention);
             }
 
             await user.GrantRoleAsync(
-                guild.GetRole(HardcodedShit.humanRoleId)
+                guild.GetRole(AccessRole)
             );
             break;
         }
@@ -116,7 +111,8 @@ public class NewUserHelper
             return;
         }
 
-        var phil = await guild.GetMemberAsync(HardcodedShit.phil);
+        var phil = await guild.GetMemberAsync(Moderation.philUserId);
+        
         var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd} {phil.Mention}";
 
         await welcomeChannel.SendMessageAsync(message);

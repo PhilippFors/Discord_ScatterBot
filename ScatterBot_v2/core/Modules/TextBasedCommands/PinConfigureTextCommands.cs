@@ -12,18 +12,19 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
     [RequirePermissions(Permissions.ManageChannels)]
     public class PinConfigureTextCommands : BaseCommandModule
     {
+        public PinHelper pinHelper { private get; set; }
         [Command("monitor")]
         public async Task Pin(CommandContext context, string channelId)
         {
             var channel = await context.Client.GetChannel(channelId);
-            PinHelper.Instance.AddChannel(channel.Id);
+            pinHelper.AddChannel(channel.Id);
             await context.Client.LogToChannel($"Monitoring channel {channel.Name}");
         }
 
         [Command("monitor")]
         public async Task Pin(CommandContext context, DiscordChannel channelId)
         {
-            PinHelper.Instance.AddChannel(channelId.Id);
+            pinHelper.AddChannel(channelId.Id);
             await context.Client.LogToChannel($"Monitoring channel {channelId.Name}");
         }
 
@@ -31,14 +32,14 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         public async Task UnPin(CommandContext context, string channelId)
         {
             var channel = await context.Client.GetChannel(channelId);
-            PinHelper.Instance.RemoveChannel(channel.Id);
+            pinHelper.RemoveChannel(channel.Id);
             await context.Client.LogToChannel($"Unmonitoring channel {channel.Name}");
         }
 
         [Command("unmonitor")]
         public async Task UnPin(CommandContext context, DiscordChannel channelId)
         {
-            PinHelper.Instance.RemoveChannel(channelId.Id);
+            pinHelper.RemoveChannel(channelId.Id);
             await context.Client.LogToChannel($"Unmonitoring channel {channelId.Name}");
         }
 
@@ -46,14 +47,14 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         public async Task SetArchive(CommandContext context, string channelId)
         {
             var channel = await context.Client.GetChannel(channelId);
-            PinHelper.Instance.SetArchiveChannel(channel.Id);
+            pinHelper.SetArchiveChannel(channel.Id);
             await context.Client.LogToChannel($"{channel.Name} set as archive.");
         }
 
         [Command("setarchive")]
         public async Task SetArchive(CommandContext context, DiscordChannel channelId)
         {
-            PinHelper.Instance.SetArchiveChannel(channelId.Id);
+            pinHelper.SetArchiveChannel(channelId.Id);
             await context.Client.LogToChannel($"{channelId.Name} set as archive.");
         }
     }

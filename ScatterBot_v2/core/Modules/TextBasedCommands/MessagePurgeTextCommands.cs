@@ -23,7 +23,7 @@ public class MessagePurgeTextCommands : BaseCommandModule
         else
             channel = context.Channel;
         
-        var messages = await GetMessages(context, amount, channel);
+        var messages = await GetMessages(context, amount + 1, channel);
         var arr = messages.ToArray();
 
         await Task.Delay(1000);
@@ -58,7 +58,7 @@ public class MessagePurgeTextCommands : BaseCommandModule
     }
 
     [Command("user")]
-    public async Task PurgeMessagesByUser(CommandContext context, int amount, DiscordMember user, string channelId = "", bool purgeSelf = false)
+    public async Task PurgeMessagesByUser(CommandContext context, int amount, DiscordMember user, string channelId = "", bool purgeSelf = true)
     {
         DiscordChannel channel = null;
         if(channelId != "")
