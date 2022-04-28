@@ -39,11 +39,6 @@ public static class DiscordClientExtensions
             }
         }
 
-        if (channel == null) {
-            await context.LogToChannel($"Channel with name {channelId} not found.");
-            return null;
-        }
-
         return channel;
     }
 
@@ -59,9 +54,9 @@ public static class DiscordClientExtensions
         return guild.GetRole(id);
     }
 
-    public static async Task LogToChannel(this DiscordClient context, string msg)
+    public static async Task LogToChannel(this DiscordClient context, string msg, ulong id)
     {
-        var botLogsChannel = await context.GetChannel(Channels.logChannelId);
+        var botLogsChannel = await context.GetChannel(id);
         await botLogsChannel.SendMessageAsync(msg);
     }
 }

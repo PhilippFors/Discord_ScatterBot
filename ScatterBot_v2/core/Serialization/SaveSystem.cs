@@ -9,6 +9,7 @@ namespace ScatterBot_v2.core.Serialization;
 
 public class SaveSystem
 {
+    public ServerData ServerData => serverData;
     private ServerData serverData;
     private string appPath => Directory.GetCurrentDirectory();
     private string configPath = "/config/";
@@ -28,33 +29,15 @@ public class SaveSystem
         }
 
         using var file = File.OpenRead(FullPath);
-        {
-            serverData = Serializer.Deserialize<ServerData>(file);
-        }
 
-        Roles.accessRoleId = serverData.accessRoleId;
-        Roles.mutedRoleId = serverData.mutedRoleId;
-        Channels.welcomeChannelId = serverData.welcomeChannel;
-        Channels.logChannelId = serverData.botLogChannel;
-        Moderation.bonkedMembers = serverData.bonkedMembers;
-        Moderation.newIntroductions = serverData.newIntroductions;
-        Moderation.newUsers = serverData.newUsers;
+        serverData = Serializer.Deserialize<ServerData>(file);
     }
 
     public Task SaveData()
     {
-        serverData.accessRoleId = Roles.accessRoleId;
-        serverData.mutedRoleId = Roles.mutedRoleId;
-        serverData.welcomeChannel = Channels.welcomeChannelId;
-        serverData.botLogChannel = Channels.logChannelId;
-        serverData.bonkedMembers = Moderation.bonkedMembers;
-        serverData.newIntroductions = Moderation.newIntroductions;
-        serverData.newUsers = Moderation.newUsers;
+        using var file = File.OpenWrite(FullPath);
 
-        using var file = File.Open(FullPath, FileMode.Open);
-        
         Serializer.Serialize(file, serverData);
-        Console.WriteLine("Saved!");
         return Task.CompletedTask;
     }
 

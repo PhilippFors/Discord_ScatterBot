@@ -8,6 +8,7 @@ using DSharpPlus.Entities;
 using ScatterBot_v2.core.Data;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
+using ScatterBot_v2.core.Serialization;
 
 namespace ScatterBot_v2.core.Modules.TextBasedCommands;
 
@@ -16,18 +17,20 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands;
 public class MemberManagementTextCommands : BaseCommandModule
 {
     public BonkedHelper bonkedHelper { private get; set; }
+    public SaveSystem saveSystem { private get; set; }
     
     [Group("access")]
     [RequirePermissions(Permissions.ModerateMembers)]
     public class ServerAccess : BaseCommandModule
     {
         public NewUserHelper newUserHelper { private get; set; }
+        public SaveSystem saveSystem { private get; set; }
 
         [Command("direct")]
         public async Task GrantAccess(CommandContext context, params DiscordMember[] users)
         {
             var mentions = new List<string>();
-            var accessRole = Roles.accessRoleId;
+            var accessRole = saveSystem.ServerData.accessRoleId;
             foreach (var user in users) {
                 if (user.HasRole(accessRole)) {
                     continue;
@@ -40,7 +43,7 @@ public class MemberManagementTextCommands : BaseCommandModule
                 );
             }
 
-            var channel = context.Guild.GetChannel(Channels.welcomeChannelId);
+            var channel = context.Guild.GetChannel(saveSystem.ServerData.welcomeChannel);
             var m = string.Join(", ", mentions);
             channel.SendMessageAsync($"Hi {m}. Don't break anything.");
             await context.Message.DeleteAsync();
@@ -123,14 +126,14 @@ public class MemberManagementTextCommands : BaseCommandModule
             await user.GrantRoleAsync(role);
         }
 
-        await context.Client.LogToChannel($"Granted {role} to {string.Join(", ", users.Select(u => u.Username))}");
+        await context.Client.LogToChannel($"Granted {role} to {string.Join(", ", users.Select(u => u.Username))}", saveSystem.ServerData.botLogChannel);
         await context.Message.DeleteAsync();
     }
     
     [Command("bonkamount")]
     public async Task BonkAmount(CommandContext context)
     {
-        var amount = Moderation.bonkedMembers.Count;
-        await context.Client.LogToChannel($"{amount.ToString()} people are bonked right now.");
+        var amount = saveSystem.ServerData.bonkedMembers.Length;
+        await context.Client.LogToChannel($"{amount.ToString()} people are bonked right now.", saveSystem.ServerData.botLogChannel);
     }
 }

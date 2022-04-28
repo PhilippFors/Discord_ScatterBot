@@ -14,34 +14,36 @@ namespace ScatterBot_v2.core.Helpers
     {
         private DiscordClient context;
         private SaveSystem saveSystem;
-        private List<BonkedMember> bonkedMembers => Moderation.bonkedMembers;
 
-        public BonkedHelper()
-        {
-            Moderation.bonkedMembers = new List<BonkedMember>();
-        }
-
-        public void Initialize(DiscordClient client, SaveSystem saveSystem)
+        private List<BonkedMember> tempBonked;
+        public BonkedHelper(SaveSystem saveSystem, DiscordClient context)
         {
             this.saveSystem = saveSystem;
-            context = client;
+            this.context = context;
+            if (saveSystem.ServerData.bonkedMembers == null || saveSystem.ServerData.bonkedMembers.Length == 0) {
+                tempBonked = new List<BonkedMember>();
+            }
+            else {
+                tempBonked = saveSystem.ServerData.bonkedMembers.ToList();
+            }
+
             CheckMembers();
         }
 
         public bool IsBonked(ulong id)
         {
-            var find = bonkedMembers.Find(x => x.id == id);
+            var find = tempBonked.Find(x => x.id == id);
             return find != null;
         }
 
-        public int BonkedAmount() => bonkedMembers.Count;
+        public int BonkedAmount() => tempBonked.Count;
 
         public async Task AddBonkedMember(ulong id, double bonkTimeMinutes)
         {
             var guild = await context.GetGuildAsync(Guild.guildId);
             var user = await guild.GetMemberAsync(id);
             if (user == null) {
-                await context.LogToChannel($"User with {id} could not be found");
+                await context.LogToChannel($"User with {id} could not be found", saveSystem.ServerData.botLogChannel);
                 return;
             }
 
@@ -50,11 +52,11 @@ namespace ScatterBot_v2.core.Helpers
 
         private async Task BonkInternal(DiscordMember user, DiscordGuild guild, double bonkTimeMinutes)
         {
-            var runCheck = bonkedMembers.Count == 0;
-            
+            var runCheck = tempBonked.Count == 0;
+
             var id = user.Id;
 
-            var exist = bonkedMembers.Find(x => x.id == id);
+            var exist = tempBonked.Find(x => x.id == id);
 
             if (exist != null) {
                 exist.bonkDuration += MinuteToSecond(bonkTimeMinutes);
@@ -69,7 +71,7 @@ namespace ScatterBot_v2.core.Helpers
                 }
 
                 await user.GrantRoleAsync(
-                    guild.GetRole(Roles.mutedRoleId)
+                    guild.GetRole(saveSystem.ServerData.mutedRoleId)
                 );
 
                 var time = MinuteToSecond(bonkTimeMinutes);
@@ -81,24 +83,25 @@ namespace ScatterBot_v2.core.Helpers
                     initialRoles = allRoleIds
                 };
 
-                Moderation.bonkedMembers.Add(bonked);
+                tempBonked.Add(bonked);
             }
 
             if (runCheck) {
                 CheckMembers();
             }
 
-            await guild.LogToChannel($"Bonked user {user.Username} for {bonkTimeMinutes:0.0} Minutes");
+            await guild.LogToChannel($"Bonked user {user.Username} for {bonkTimeMinutes:0.0} Minutes", saveSystem.ServerData.botLogChannel);
 
-            saveSystem.SaveData();
+            saveSystem.ServerData.bonkedMembers = tempBonked.ToArray();
+            await saveSystem.SaveData();
         }
 
         public async Task UnbonkMember(BonkedMember member)
         {
             RemoveBonkedMember(member.id);
-
-            var user = await context.GetUserAsync(member.id) as DiscordMember;
-
+            var guild = await context.GetGuildAsync(Guild.guildId);
+            var user = await guild.GetMemberAsync(member.id);
+            
             foreach (var id in member.initialRoles) {
                 await user.GrantRoleAsync(
                     await context.GetRole(id)
@@ -106,15 +109,15 @@ namespace ScatterBot_v2.core.Helpers
             }
 
             await user.RevokeRoleAsync(
-                await context.GetRole(Roles.mutedRoleId)
+                await context.GetRole(saveSystem.ServerData.mutedRoleId)
             );
 
-            await context.LogToChannel($"Unbonked user {user.Username}");
+            await context.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
         }
 
         public async Task UnbonkMember(ulong id)
         {
-            var bonkedMember = Moderation.bonkedMembers.Find(x => x.id == id);
+            var bonkedMember = tempBonked.Find(x => x.id == id);
 
             if (bonkedMember == null) {
                 return;
@@ -125,34 +128,35 @@ namespace ScatterBot_v2.core.Helpers
             var guild = await context.GetGuildAsync(Guild.guildId);
             var user = await guild.GetMemberAsync(id);
             foreach (var roleId in bonkedMember.initialRoles) {
-                user.GrantRoleAsync(
+                await user.GrantRoleAsync(
                     await context.GetRole(roleId)
                 );
             }
 
             await user.RevokeRoleAsync(
-                await context.GetRole(Roles.mutedRoleId)
+                await context.GetRole(saveSystem.ServerData.mutedRoleId)
             );
 
-            await context.LogToChannel($"Unbonked user {user.Username}");
+            await context.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
         }
 
         private void RemoveBonkedMember(ulong id)
         {
-            var member = Moderation.bonkedMembers.Find(x => x.id == id);
+            var member = tempBonked.Find(x => x.id == id);
             if (member != null) {
-                Moderation.bonkedMembers.Remove(member);
+                tempBonked.Remove(member);
             }
 
+            saveSystem.ServerData.bonkedMembers = tempBonked.ToArray();
             saveSystem.SaveData();
         }
 
         private async Task CheckMembers()
         {
-            while (Moderation.bonkedMembers.Count > 0) {
-                for (int i = 0; i < bonkedMembers.Count; i++) {
-                    var member = bonkedMembers[i];
-                    if (DateTime.Now.TimeOfDay.TotalMilliseconds > member.endTime) {
+            while (tempBonked.Count > 0) {
+                for (int i = 0; i < tempBonked.Count; i++) {
+                    var member = tempBonked[i];
+                    if (DateTime.Now.TimeOfDay.TotalSeconds > member.endTime) {
                         await UnbonkMember(member);
                     }
                 }

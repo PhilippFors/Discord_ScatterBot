@@ -26,8 +26,7 @@ namespace ScatterBot_v2
 
         private async Task MainAsync()
         {
-            var runtime = RuntimeTypeModel.Default;
-            
+            var saveSystem = new SaveSystem();
             // get token from text file
             var stream = File.OpenRead("token.txt");
             var token = await new StreamReader(stream).ReadToEndAsync();
@@ -46,14 +45,12 @@ namespace ScatterBot_v2
                     MinimumLogLevel = LogLevel.Debug
                 }
             );
-
-            await InitializeHandlers();
+            saveSystem.LoadData();
+            await InitializeHandlers(saveSystem);
             await _client.ConnectAsync();
             var guild = await _client.GetGuildAsync(Guild.guildId);
             
-            services.saveSystem.LoadData();
             await services.saveSystem.InitializeRuntimeData(guild);
-            services.bonkedHelper.Initialize(_client, services.saveSystem);
 
             _client.ChannelPinsUpdated += HandleChannelPinsUpdated;
             _client.MessageCreated += HandleMessagesCreated;
@@ -62,13 +59,13 @@ namespace ScatterBot_v2
             await Task.Delay(-1);
         }
 
-        private Task InitializeHandlers()
+        private Task InitializeHandlers(SaveSystem saveSystem)
         {
             services = new Services() {
-                bonkedHelper = new BonkedHelper(),
-                newUserHelper = new NewUserHelper(),
-                pinHelper = new PinHelper(),
-                saveSystem = new SaveSystem()
+                saveSystem = saveSystem,
+                bonkedHelper = new BonkedHelper(saveSystem, _client),
+                newUserHelper = new NewUserHelper(saveSystem),
+                pinHelper = new PinHelper(saveSystem),
             };
 
             var di = new ServiceCollection()
@@ -98,13 +95,13 @@ namespace ScatterBot_v2
         {
             var commandName = e.Command.Name;
             var member = e.Context.Member;
-            await _client.LogToChannel($"{commandName} executed by {member.Username} failed to execute.");
+            await _client.LogToChannel($"{commandName} executed by {member.Username} failed to execute.{e.Exception}, {e.Exception.Message}",services.saveSystem.ServerData.botLogChannel);
         }
 
         private async Task HandleMessagesCreated(DiscordClient client, MessageCreateEventArgs eventArgs)
         {
             var message = eventArgs.Message;
-            if (message.Channel.Id == Channels.welcomeChannelId) {
+            if (message.Channel.Id == services.saveSystem.ServerData.welcomeChannel) {
                 // Bonked users can still type in welcome so this bonks 'em again
                 var author = message.Author;
 

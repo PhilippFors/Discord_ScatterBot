@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -18,14 +19,25 @@ public class NewUserHelper
     private int minMessageCount = 20;
     private bool automateUserWelcome;
 
-    private ulong AccessRole => Roles.accessRoleId;
-    private List<ulong> newUsers => Moderation.newUsers;
-    private List<MessageSaveData> introductions => Moderation.newIntroductions;
-    
-    public NewUserHelper()
+    private SaveSystem saveSystem;
+    private ulong AccessRole => saveSystem.ServerData.accessRoleId;
+    private List<ulong> newUsers;
+    private List<MessageSaveData> introductions;
+
+    public NewUserHelper(SaveSystem saveSystem)
     {
-        Moderation.newIntroductions = new List<MessageSaveData>();
-        Moderation.newUsers = new List<ulong>();
+        this.saveSystem = saveSystem;
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        newUsers =
+            saveSystem.ServerData.newUsers == null ? new List<ulong>() : saveSystem.ServerData.newUsers.ToList();
+        introductions =
+            saveSystem.ServerData.newIntroductions == null
+                ? new List<MessageSaveData>()
+                : saveSystem.ServerData.newIntroductions.ToList();
     }
 
     public void StartAutomateUserWelcome()
@@ -55,11 +67,14 @@ public class NewUserHelper
             messageId = message.Id,
             userId = user.Id
         });
+        
+        Save();
     }
 
     public Task AddUser(ulong id)
     {
         newUsers.Add(id);
+        Save();
         return Task.CompletedTask;
     }
 
@@ -67,6 +82,7 @@ public class NewUserHelper
     {
         if (newUsers.Contains(user)) {
             newUsers.Remove(user);
+            Save();
         }
     }
 
@@ -89,10 +105,10 @@ public class NewUserHelper
             var userMessage = await welcomeChannel.GetMessageAsync(data.messageId);
             var user = await guild.GetMemberAsync(data.userId);
 
-            if (user.HasRole(Roles.accessRoleId)) {
+            if (user.HasRole(saveSystem.ServerData.accessRoleId)) {
                 continue;
             }
-            
+
             mentionedUsers.Add(user.Mention);
             newUsers.Remove(user.Id);
             introductions.Remove(data);
@@ -112,14 +128,24 @@ public class NewUserHelper
         }
 
         var phil = await guild.GetMemberAsync(Moderation.philUserId);
-        
+
         var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd} {phil.Mention}";
 
         await welcomeChannel.SendMessageAsync(message);
 
         if (shortIntroList.Count > 0) {
-            var addendum = $"\n{string.Join(", ", shortIntroList)}, your intros seem a little short, maybe add a bit more? You have been granted access regardless!";
+            var addendum =
+                $"\n{string.Join(", ", shortIntroList)}, your intros seem a little short, maybe add a bit more? You have been granted access regardless!";
             await welcomeChannel.SendMessageAsync(addendum);
         }
+
+        Save();
+    }
+
+    private void Save()
+    {
+        saveSystem.ServerData.newIntroductions = introductions.ToArray();
+        saveSystem.ServerData.newUsers = newUsers.ToArray();
+        saveSystem.SaveData();
     }
 }

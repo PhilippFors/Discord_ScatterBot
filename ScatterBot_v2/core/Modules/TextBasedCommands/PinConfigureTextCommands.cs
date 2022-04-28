@@ -5,6 +5,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
+using ScatterBot_v2.core.Serialization;
 
 namespace ScatterBot_v2.core.Modules.TextBasedCommands
 {
@@ -13,19 +14,30 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
     public class PinConfigureTextCommands : BaseCommandModule
     {
         public PinHelper pinHelper { private get; set; }
+        public SaveSystem saveSystem { private get; set; }
         [Command("monitor")]
-        public async Task Pin(CommandContext context, string channelId)
+        public async Task Pin(CommandContext context, string monitorId, string archiveId)
         {
-            var channel = await context.Client.GetChannel(channelId);
-            pinHelper.AddChannel(channel.Id);
-            await context.Client.LogToChannel($"Monitoring channel {channel.Name}");
+            var monitor = await context.Client.GetChannel(monitorId);
+            var archive = await context.Client.GetChannel(archiveId);
+            pinHelper.AddChannel(monitor.Id, archive.Id);
+            await Log(context,$"Archiving {monitor.Name} in {archive.Name}");
         }
 
         [Command("monitor")]
-        public async Task Pin(CommandContext context, DiscordChannel channelId)
+        public async Task Pin(CommandContext context, ulong monitorId, ulong archiveId)
         {
-            pinHelper.AddChannel(channelId.Id);
-            await context.Client.LogToChannel($"Monitoring channel {channelId.Name}");
+            var monitor = await context.Client.GetChannel(monitorId);
+            var archive = await context.Client.GetChannel(archiveId);
+            
+            if(monitor == null || archive == null)
+            {
+                await Log(context, "One of the channels doesn't exist");
+                return;
+            }
+            
+            pinHelper.AddChannel(monitorId, archiveId);
+            await Log(context,$"Archiving {monitor.Name} in {archive.Name}");
         }
 
         [Command("unmonitor")]
@@ -33,29 +45,19 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         {
             var channel = await context.Client.GetChannel(channelId);
             pinHelper.RemoveChannel(channel.Id);
-            await context.Client.LogToChannel($"Unmonitoring channel {channel.Name}");
+            await Log(context,$"Unmonitoring channel {channel.Name}");
         }
 
         [Command("unmonitor")]
         public async Task UnPin(CommandContext context, DiscordChannel channelId)
         {
             pinHelper.RemoveChannel(channelId.Id);
-            await context.Client.LogToChannel($"Unmonitoring channel {channelId.Name}");
+            await Log(context,$"Unmonitoring channel {channelId.Name}");
         }
 
-        [Command("setarchive")]
-        public async Task SetArchive(CommandContext context, string channelId)
+        private async Task Log(CommandContext context, string msg)
         {
-            var channel = await context.Client.GetChannel(channelId);
-            pinHelper.SetArchiveChannel(channel.Id);
-            await context.Client.LogToChannel($"{channel.Name} set as archive.");
-        }
-
-        [Command("setarchive")]
-        public async Task SetArchive(CommandContext context, DiscordChannel channelId)
-        {
-            pinHelper.SetArchiveChannel(channelId.Id);
-            await context.Client.LogToChannel($"{channelId.Name} set as archive.");
+            await context.Client.LogToChannel(msg, saveSystem.ServerData.botLogChannel);
         }
     }
 }

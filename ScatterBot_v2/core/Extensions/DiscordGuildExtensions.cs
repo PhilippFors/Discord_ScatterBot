@@ -59,15 +59,15 @@ public static class DiscordGuildExtensions
         return channel;
     }
 
-    public static async Task BotLog(this DiscordGuild guild, string msg)
+    public static async Task BotLog(this DiscordGuild guild, string msg, ulong logChannel)
     {
-        var botLog = guild.GetChannel(Channels.logChannelId);
+        var botLog = guild.GetChannel(logChannel);
         await botLog.SendMessageAsync(msg);
     }
 
-    public static async Task LogToChannel(this DiscordGuild guild, string msg)
+    public static async Task LogToChannel(this DiscordGuild guild, string msg, ulong id)
     {
-        var channel = guild.GetChannel(Channels.logChannelId);
+        var channel = guild.GetChannel(id);
         await channel.SendMessageAsync(msg);
     }
     
