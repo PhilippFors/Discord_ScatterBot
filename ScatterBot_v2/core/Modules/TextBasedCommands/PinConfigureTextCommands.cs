@@ -5,7 +5,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
-using ScatterBot_v2.core.Serialization;
+using ScatterBot_v2.Serialization;
 
 namespace ScatterBot_v2.core.Modules.TextBasedCommands
 {

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using ScatterBot_v2.core.Data;
 using ScatterBot_v2.core.Extensions;
-using ScatterBot_v2.core.Serialization;
+using ScatterBot_v2.Data;
+using ScatterBot_v2.Serialization;
 
 namespace ScatterBot_v2.core.Helpers
 {

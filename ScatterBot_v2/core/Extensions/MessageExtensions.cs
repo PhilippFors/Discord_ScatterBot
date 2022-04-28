@@ -2,13 +2,14 @@
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 
-namespace ScatterBot_v2.core.Extensions;
-
-public static class MessageExtensions
+namespace ScatterBot_v2.core.Extensions
 {
-    public static async Task WaitDeleteMessage(this DiscordMessage m, double time = 2)
+    public static class MessageExtensions
     {
-        await Task.Delay(TimeSpan.FromSeconds(time));
-        await m.DeleteAsync();
+        public static async Task WaitDeleteMessage(this DiscordMessage m, double time = 2)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(time));
+            await m.DeleteAsync();
+        }
     }
 }

@@ -1,17 +1,18 @@
 ﻿using System.Linq;
 using DSharpPlus.Entities;
 
-namespace ScatterBot_v2.core.Extensions;
-
-public static class DiscordMemberExtensions
+namespace ScatterBot_v2.core.Extensions
 {
-    public static bool HasRole(this DiscordMember user, ulong roleId)
+    public static class DiscordMemberExtensions
     {
-        return user.Roles.ToList().Exists(x => x.Id == roleId);
-    }
+        public static bool HasRole(this DiscordMember user, ulong roleId)
+        {
+            return user.Roles.ToList().Exists(x => x.Id == roleId);
+        }
     
-    public static bool HasRole(this DiscordMember user, string roleName)
-    {
-        return user.Roles.ToList().Exists(x => x.Name == roleName);
+        public static bool HasRole(this DiscordMember user, string roleName)
+        {
+            return user.Roles.ToList().Exists(x => x.Name == roleName);
+        }
     }
 }

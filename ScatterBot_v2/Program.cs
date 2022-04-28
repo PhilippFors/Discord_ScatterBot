@@ -6,12 +6,11 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ProtoBuf.Meta;
 using ScatterBot_v2.core;
-using ScatterBot_v2.core.Data;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
-using ScatterBot_v2.core.Serialization;
+using ScatterBot_v2.Data;
+using ScatterBot_v2.Serialization;
 
 namespace ScatterBot_v2
 {
@@ -45,6 +44,7 @@ namespace ScatterBot_v2
                     MinimumLogLevel = LogLevel.Debug
                 }
             );
+            
             saveSystem.LoadData();
             await InitializeHandlers(saveSystem);
             await _client.ConnectAsync();
