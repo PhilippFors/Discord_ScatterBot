@@ -11,7 +11,7 @@ namespace ScatterBot_v2.core.Extensions
         public static async Task<DiscordChannel> GetChannel(this DiscordClient context, ulong id)
         {
             DiscordChannel channel;
-            var guild = await context.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
 
             if (id == 0) {
                 channel = guild.Channels.First().Value;
@@ -25,7 +25,7 @@ namespace ScatterBot_v2.core.Extensions
 
         public static async Task<DiscordChannel> GetChannel(this DiscordClient context, string channelId)
         {
-            var guild = await context.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
 
             DiscordChannel channel = null;
 
@@ -42,15 +42,15 @@ namespace ScatterBot_v2.core.Extensions
             return channel;
         }
 
-        public static async Task<DiscordRole> GetRole(this DiscordClient client, ulong id)
+        public static DiscordRole GetRole(this DiscordClient client, ulong id)
         {
-            var guild = await client.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
             return guild.GetRole(id);
         }
 
-        public static async Task<DiscordRole> GetRole(this DiscordClient client, string id)
+        public static DiscordRole GetRole(this DiscordClient client, string id)
         {
-            var guild = await client.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
             return guild.GetRole(id);
         }
 

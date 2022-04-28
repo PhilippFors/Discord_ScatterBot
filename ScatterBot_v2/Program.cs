@@ -7,6 +7,7 @@ using DSharpPlus.EventArgs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ScatterBot_v2.core;
+using ScatterBot_v2.core.ErrorHandling;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
 using ScatterBot_v2.Data;
@@ -19,20 +20,21 @@ namespace ScatterBot_v2
         private DiscordClient _client;
         private CommandsNextExtension _commands;
         private Services services;
-
+        private ErrorHandler errorHandler;
+        
         // Entry point
-        public static void Main() => new Program().MainAsync().GetAwaiter().GetResult();
+        public static void Main() =>
+            new Program().MainAsync().GetAwaiter().GetResult();
 
         private async Task MainAsync()
         {
-            var saveSystem = new SaveSystem();
             // get token from text file
             var stream = File.OpenRead("token.txt");
             var token = await new StreamReader(stream).ReadToEndAsync();
             await stream.DisposeAsync();
 
             _client = new DiscordClient(
-                new() {
+                new () {
                     Token = token,
                     TokenType = TokenType.Bot,
                     AutoReconnect = true,
@@ -45,17 +47,20 @@ namespace ScatterBot_v2
                 }
             );
             
+            var saveSystem = new SaveSystem();
             saveSystem.LoadData();
+            
             await InitializeHandlers(saveSystem);
             await _client.ConnectAsync();
-            var guild = await _client.GetGuildAsync(Guild.guildId);
             
-            await services.saveSystem.InitializeRuntimeData(guild);
+            Guild.guild = await _client.GetGuildAsync(Guild.guildId);
+            await services.saveSystem.InitializeRuntimeData(Guild.guild);
 
             _client.ChannelPinsUpdated += HandleChannelPinsUpdated;
             _client.MessageCreated += HandleMessagesCreated;
             _client.GuildMemberAdded += (ctx, args) => services.newUserHelper.AddUser(args.Member.Id);
             
+            // exit when program closes
             await Task.Delay(-1);
         }
 
@@ -63,7 +68,7 @@ namespace ScatterBot_v2
         {
             services = new Services() {
                 saveSystem = saveSystem,
-                bonkedHelper = new BonkedHelper(saveSystem, _client),
+                bonkedHelper = new BonkedHelper(saveSystem),
                 newUserHelper = new NewUserHelper(saveSystem),
                 pinHelper = new PinHelper(saveSystem),
             };
@@ -83,19 +88,14 @@ namespace ScatterBot_v2
                 EnableMentionPrefix = false,
                 Services = di
             };
-
+            
+            errorHandler = new ErrorHandler(services, _client);
+            
             _commands = _client.UseCommandsNext(config);
             _commands.RegisterCommands(Assembly.GetEntryAssembly());
-            _commands.CommandErrored += HandleCommandErrored;
+            _commands.CommandErrored += errorHandler.HandleCommandErrored;
 
             return Task.CompletedTask;
-        }
-
-        private async Task HandleCommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
-        {
-            var commandName = e.Command.Name;
-            var member = e.Context.Member;
-            await _client.LogToChannel($"{commandName} executed by {member.Username} failed to execute.{e.Exception}, {e.Exception.Message}",services.saveSystem.ServerData.botLogChannel);
         }
 
         private async Task HandleMessagesCreated(DiscordClient client, MessageCreateEventArgs eventArgs)

@@ -44,12 +44,17 @@ namespace ScatterBot_v2.core.Helpers
             }
 
             var messages = await channel.GetPinnedMessagesAsync();
-            var message = messages.FirstOrDefault();
-            if (message == null) {
+            if (messages == null || messages.Count == 0){
                 return;
             }
 
-            if (message.Pinned) {
+            foreach (var message in messages)
+            {
+                if (!message.Pinned)
+                {
+                    continue;
+                }
+                
                 var attachments = message.Attachments.ToList();
 
                 await message.UnpinAsync();
@@ -59,14 +64,17 @@ namespace ScatterBot_v2.core.Helpers
                 await postChannel.SendMessageAsync($"**Shared by:** {message.Author.Mention}\n{message.Content}");
                 var webClient = new WebClient();
 
-                foreach (var att in attachments) {
-                    using (webClient) {
+                foreach (var att in attachments)
+                {
+                    using (webClient)
+                    {
                         await webClient.DownloadFileTaskAsync(att.ProxyUrl, $"{att.FileName}");
                     }
 
                     Console.WriteLine($"Downloaded {att.FileName}");
 
-                    await using (var file = File.Open($"{att.FileName}", FileMode.Open, FileAccess.Read)) {
+                    await using (var file = File.Open($"{att.FileName}", FileMode.Open, FileAccess.Read))
+                    {
                         await new DiscordMessageBuilder().WithFile(att.FileName, file)
                             .SendAsync(postChannel);
                     }

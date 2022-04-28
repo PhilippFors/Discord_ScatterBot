@@ -1,4 +1,6 @@
-﻿namespace ScatterBot_v2.Data
+﻿using DSharpPlus.Entities;
+
+namespace ScatterBot_v2.Data
 {
     public static class Roles
     {
@@ -22,5 +24,6 @@
     public static class Guild
     {
         public static ulong guildId = 967532421975273563; // like the only hardcoded thing
+        public static DiscordGuild guild;
     }
 }

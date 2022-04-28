@@ -12,14 +12,12 @@ namespace ScatterBot_v2.core.Helpers
 {
     public class BonkedHelper
     {
-        private DiscordClient context;
         private SaveSystem saveSystem;
 
         private List<BonkedMember> tempBonked;
-        public BonkedHelper(SaveSystem saveSystem, DiscordClient context)
+        public BonkedHelper(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
-            this.context = context;
             if (saveSystem.ServerData.bonkedMembers == null || saveSystem.ServerData.bonkedMembers.Length == 0) {
                 tempBonked = new List<BonkedMember>();
             }
@@ -40,10 +38,10 @@ namespace ScatterBot_v2.core.Helpers
 
         public async Task AddBonkedMember(ulong id, double bonkTimeMinutes)
         {
-            var guild = await context.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
             var user = await guild.GetMemberAsync(id);
             if (user == null) {
-                await context.LogToChannel($"User with {id} could not be found", saveSystem.ServerData.botLogChannel);
+                await guild.LogToChannel($"User with {id} could not be found", saveSystem.ServerData.botLogChannel);
                 return;
             }
 
@@ -99,20 +97,20 @@ namespace ScatterBot_v2.core.Helpers
         public async Task UnbonkMember(BonkedMember member)
         {
             RemoveBonkedMember(member.id);
-            var guild = await context.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
             var user = await guild.GetMemberAsync(member.id);
             
             foreach (var id in member.initialRoles) {
                 await user.GrantRoleAsync(
-                    await context.GetRole(id)
+                    guild.GetRole(id)
                 );
             }
 
             await user.RevokeRoleAsync(
-                await context.GetRole(saveSystem.ServerData.mutedRoleId)
+                guild.GetRole(saveSystem.ServerData.mutedRoleId)
             );
 
-            await context.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
+            await guild.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
         }
 
         public async Task UnbonkMember(ulong id)
@@ -125,19 +123,19 @@ namespace ScatterBot_v2.core.Helpers
 
             RemoveBonkedMember(id);
 
-            var guild = await context.GetGuildAsync(Guild.guildId);
+            var guild = Guild.guild;
             var user = await guild.GetMemberAsync(id);
             foreach (var roleId in bonkedMember.initialRoles) {
                 await user.GrantRoleAsync(
-                    await context.GetRole(roleId)
+                    guild.GetRole(roleId)
                 );
             }
 
             await user.RevokeRoleAsync(
-                await context.GetRole(saveSystem.ServerData.mutedRoleId)
+                guild.GetRole(saveSystem.ServerData.mutedRoleId)
             );
 
-            await context.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
+            await guild.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
         }
 
         private void RemoveBonkedMember(ulong id)

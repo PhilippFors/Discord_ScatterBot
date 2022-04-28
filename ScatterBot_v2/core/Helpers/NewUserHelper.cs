@@ -51,8 +51,9 @@ namespace ScatterBot_v2.core.Helpers
         }
 
         public async Task AddWelcomeMessage(DiscordMessage message, DiscordClient client)
-        {
-            var user = message.Author as DiscordMember;
+        { ;
+            var guild = await client.GetGuildAsync(Guild.guildId);
+            var user = await guild.GetMemberAsync(message.Author.Id);
             if (user.HasRole(AccessRole)) {
                 return;
             }
