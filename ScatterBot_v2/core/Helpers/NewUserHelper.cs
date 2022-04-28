@@ -129,13 +129,14 @@ namespace ScatterBot_v2.core.Helpers
 
             var phil = await guild.GetMemberAsync(Moderation.philUserId);
 
-            var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd} {phil.Mention}";
+            var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd}";
 
             await welcomeChannel.SendMessageAsync(message);
 
             if (shortIntroList.Count > 0) {
+                var s = shortIntroList.Count > 1 ? "s" : "";
                 var addendum =
-                    $"\n{string.Join(", ", shortIntroList)}, your intros seem a little short, maybe add a bit more? You have been granted access regardless!";
+                    $"\n{string.Join(", ", shortIntroList)}, your intro{s} seem a little short, maybe add a bit more? You have been granted access regardless!";
                 await welcomeChannel.SendMessageAsync(addendum);
             }
 
