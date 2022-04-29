@@ -12,6 +12,8 @@ using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
 using ScatterBot_v2.Data;
 using ScatterBot_v2.Serialization;
+using Serilog.Configuration;
+using Serilog;
 
 namespace ScatterBot_v2
 {
@@ -32,6 +34,9 @@ namespace ScatterBot_v2
             var token = await new StreamReader(stream).ReadToEndAsync();
             await stream.DisposeAsync();
 
+            Logging.Create();
+            var logFactory = new LoggerFactory().AddSerilog();
+            
             _client = new DiscordClient(
                 new () {
                     Token = token,
@@ -42,7 +47,8 @@ namespace ScatterBot_v2
                               DiscordIntents.GuildMessages | DiscordIntents.GuildPresences | DiscordIntents.Guilds |
                               DiscordIntents.GuildMembers,
                     MessageCacheSize = 300,
-                    MinimumLogLevel = LogLevel.Debug
+                    MinimumLogLevel = LogLevel.Debug,
+                    LoggerFactory = logFactory
                 }
             );
 

@@ -11,7 +11,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands;
 public class ApplicationTextCommands : BaseCommandModule
 {
     public ApplicationHandler handler { private get; set; }
-    
+
     [Command("terminate")]
     public Task Terminate(CommandContext context)
     {
