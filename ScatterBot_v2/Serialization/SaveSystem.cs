@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using ProtoBuf;
@@ -15,6 +16,11 @@ namespace ScatterBot_v2.Serialization
         private string configName = "saveData.save";
         private string FullPath => appPath + configPath + configName;
 
+        public SaveSystem()
+        {
+            InitProcessId();
+        }
+        
         public void LoadData()
         {
             if (!Directory.Exists(appPath + configPath)) {
@@ -32,6 +38,13 @@ namespace ScatterBot_v2.Serialization
             serverData = Serializer.Deserialize<ServerData>(file);
         }
 
+        private void InitProcessId()
+        {
+            File.CreateText(appPath + "/processId.txt").Close();
+            using var writer = File.AppendText(appPath + "/processId.txt");
+            writer.Write(Process.GetCurrentProcess().Id.ToString());
+        }
+        
         public Task SaveData()
         {
             using var file = File.OpenWrite(FullPath);

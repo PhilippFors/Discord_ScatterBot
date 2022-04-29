@@ -11,7 +11,7 @@ using ScatterBot_v2.core.Extensions;
 namespace ScatterBot_v2.core.Modules.TextBasedCommands
 {
     [Group("purge")]
-    [RequirePermissions(Permissions.ManageChannels)]
+    [RequireUserPermissions(Permissions.Administrator)]
     public class MessagePurgeTextCommands : BaseCommandModule
     {
         [Command("channel")]

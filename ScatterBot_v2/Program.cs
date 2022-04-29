@@ -21,14 +21,13 @@ namespace ScatterBot_v2
         private CommandsNextExtension _commands;
         private Services services;
         private ErrorHandler errorHandler;
-        
+
         // Entry point
         public static void Main() =>
             new Program().MainAsync().GetAwaiter().GetResult();
 
         private async Task MainAsync()
-        {
-            // get token from text file
+        {   // get token from text file
             var stream = File.OpenRead("token.txt");
             var token = await new StreamReader(stream).ReadToEndAsync();
             await stream.DisposeAsync();
@@ -46,11 +45,13 @@ namespace ScatterBot_v2
                     MinimumLogLevel = LogLevel.Debug
                 }
             );
+
+            var applicationHandler = new ApplicationHandler();
             
             var saveSystem = new SaveSystem();
             saveSystem.LoadData();
             
-            await InitializeHandlers(saveSystem);
+            await InitializeHandlers(saveSystem, applicationHandler);
             await _client.ConnectAsync();
             
             Guild.guild = await _client.GetGuildAsync(Guild.guildId);
@@ -60,17 +61,18 @@ namespace ScatterBot_v2
             _client.MessageCreated += HandleMessagesCreated;
             _client.GuildMemberAdded += (ctx, args) => services.newUserHelper.AddUser(args.Member.Id);
             
-            // exit when program closes
-            await Task.Delay(-1);
+            // exit when program close
+            await Task.Delay(-1, applicationHandler.ctx.Token);
         }
 
-        private Task InitializeHandlers(SaveSystem saveSystem)
+        private Task InitializeHandlers(SaveSystem saveSystem, ApplicationHandler handler)
         {
             services = new Services() {
                 saveSystem = saveSystem,
                 bonkedHelper = new BonkedHelper(saveSystem),
                 newUserHelper = new NewUserHelper(saveSystem),
                 pinHelper = new PinHelper(saveSystem),
+                applicationHandler = handler
             };
 
             var di = new ServiceCollection()
@@ -78,6 +80,7 @@ namespace ScatterBot_v2
                 .AddSingleton(services.newUserHelper)
                 .AddSingleton(services.pinHelper)
                 .AddSingleton(services.saveSystem)
+                .AddSingleton(services.applicationHandler)
                 .BuildServiceProvider();
 
             var config = new CommandsNextConfiguration() {

@@ -67,6 +67,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             }
 
             [Command("banusername")]
+            [RequireUserPermissions(Permissions.BanMembers)]
             public async Task BanAsync(CommandContext context, DiscordMember user, int time = 0, string reason = "")
             {
                 // await Context.Guild.AddBanAsync(user, time, reason);
@@ -74,6 +75,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             }
 
             [Command("banid")]
+            [RequireUserPermissions(Permissions.BanMembers)]
             public async Task BanAsync(CommandContext context, ulong id, int time = 0, string reason = "")
             {
                 // await Context.Guild.AddBanAsync(id, time, reason);

@@ -9,5 +9,6 @@ namespace ScatterBot_v2.core
         public BonkedHelper bonkedHelper;
         public PinHelper pinHelper;
         public SaveSystem saveSystem;
+        public ApplicationHandler applicationHandler;
     }
 }

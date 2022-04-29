@@ -31,7 +31,7 @@ namespace ScatterBot_v2.core.ErrorHandling
                     message = $"{member.Mention} has no permission to use {commandName}.";
                     break;
                 default:
-                    message = $"{commandName} failed with exception \"{e.Exception.Message}\"";
+                    message = $"{commandName} failed with exception \"{e.Exception}\"";
                     break;
             }
         

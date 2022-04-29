@@ -8,7 +8,7 @@ using ScatterBot_v2.Serialization;
 namespace ScatterBot_v2.core.Modules.TextBasedCommands
 {
     [Group("init")]
-    [RequirePermissions(Permissions.ModerateMembers)]
+    [RequireUserPermissions(Permissions.Administrator)]
     public class InitializeTextCommands : BaseCommandModule
     {
         public SaveSystem saveSytem { private get; set; }
