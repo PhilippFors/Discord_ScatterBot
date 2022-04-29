@@ -16,6 +16,7 @@ namespace ScatterBot_v2.core.Helpers
 
         private List<BonkedMember> tempBonked;
         public BonkedHelper(SaveSystem saveSystem)
+        
         {
             this.saveSystem = saveSystem;
             if (saveSystem.ServerData.bonkedMembers == null || saveSystem.ServerData.bonkedMembers.Length == 0) {
@@ -30,8 +31,7 @@ namespace ScatterBot_v2.core.Helpers
 
         public bool IsBonked(ulong id)
         {
-            var find = tempBonked.Find(x => x.id == id);
-            return find != null;
+            return tempBonked.Exists(x => x.id == id);
         }
 
         public int BonkedAmount() => tempBonked.Count;
@@ -154,6 +154,11 @@ namespace ScatterBot_v2.core.Helpers
             while (tempBonked.Count > 0) {
                 for (int i = 0; i < tempBonked.Count; i++) {
                     var member = tempBonked[i];
+                    if (member.bonkDuration < 0)
+                    {
+                        continue;
+                    }
+                    
                     if (DateTime.Now.TimeOfDay.TotalSeconds > member.endTime) {
                         await UnbonkMember(member);
                     }

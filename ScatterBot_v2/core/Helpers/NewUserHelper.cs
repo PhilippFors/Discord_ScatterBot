@@ -32,12 +32,10 @@ namespace ScatterBot_v2.core.Helpers
 
         private void Initialize()
         {
-            newUsers =
-                saveSystem.ServerData.newUsers == null ? new List<ulong>() : saveSystem.ServerData.newUsers.ToList();
-            introductions =
-                saveSystem.ServerData.newIntroductions == null
-                    ? new List<MessageSaveData>()
-                    : saveSystem.ServerData.newIntroductions.ToList();
+            newUsers = saveSystem.ServerData.newUsers == null ?
+                new List<ulong>() : saveSystem.ServerData.newUsers.ToList();
+            introductions = saveSystem.ServerData.newIntroductions == null ?
+                new List<MessageSaveData>() : saveSystem.ServerData.newIntroductions.ToList();
         }
 
         public void StartAutomateUserWelcome()
@@ -50,9 +48,9 @@ namespace ScatterBot_v2.core.Helpers
             automateUserWelcome = false;
         }
 
-        public async Task AddWelcomeMessage(DiscordMessage message, DiscordClient client)
-        { ;
-            var guild = await client.GetGuildAsync(Guild.guildId);
+        public async Task AddWelcomeMessage(DiscordMessage message)
+        {
+            var guild = Guild.guild;
             var user = await guild.GetMemberAsync(message.Author.Id);
             if (user.HasRole(AccessRole)) {
                 return;
@@ -60,7 +58,7 @@ namespace ScatterBot_v2.core.Helpers
 
             if (automateUserWelcome && introductions.Count == 0) {
                 await Task.Delay(TimeSpan.FromMinutes(5));
-                await AssignRoles(client);
+                await AssignRoles();
             }
 
             introductions.Add(new MessageSaveData() {
@@ -89,7 +87,7 @@ namespace ScatterBot_v2.core.Helpers
 
         public bool HasUser(DiscordMember user) => newUsers.Contains(user.Id);
 
-        public async Task AssignRoles(DiscordClient context)
+        public async Task AssignRoles()
         {
             if (introductions.Count == 0) {
                 return;
@@ -98,18 +96,18 @@ namespace ScatterBot_v2.core.Helpers
             var mentionedUsers = new List<string>();
             var shortIntroList = new List<string>();
 
-            var guild = await context.GetGuildAsync(Guild.guildId);
-            var welcomeChannel = guild.GetChannel(AccessRole);
+            var guild = Guild.guild;
+            var welcomeChannel = guild.GetChannel(saveSystem.ServerData.welcomeChannel);
 
             for (int i = 0; i < introductions.Count; i++) {
                 var data = introductions[i];
-                var userMessage = await welcomeChannel.GetMessageAsync(data.messageId);
                 var user = await guild.GetMemberAsync(data.userId);
 
                 if (user.HasRole(saveSystem.ServerData.accessRoleId)) {
                     continue;
                 }
-
+                
+                var userMessage = await welcomeChannel.GetMessageAsync(data.messageId);
                 mentionedUsers.Add(user.Mention);
                 newUsers.Remove(user.Id);
                 introductions.Remove(data);
@@ -127,8 +125,6 @@ namespace ScatterBot_v2.core.Helpers
             if (mentionedUsers.Count == 0) {
                 return;
             }
-
-            var phil = await guild.GetMemberAsync(Moderation.philUserId);
 
             var message = $"{WelcomeMessageStart} {string.Join(", ", mentionedUsers)}. {WelcomeMessageEnd}";
 

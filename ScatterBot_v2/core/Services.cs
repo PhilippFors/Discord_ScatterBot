@@ -1,4 +1,5 @@
-﻿using ScatterBot_v2.core.Helpers;
+﻿using ScatterBot_v2.core.ErrorHandling;
+using ScatterBot_v2.core.Helpers;
 using ScatterBot_v2.Serialization;
 
 namespace ScatterBot_v2.core
@@ -10,5 +11,6 @@ namespace ScatterBot_v2.core
         public PinHelper pinHelper;
         public SaveSystem saveSystem;
         public ApplicationHandler applicationHandler;
+        public ErrorHandler errorHandler;
     }
 }

@@ -1,22 +1,12 @@
 ﻿using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
 
 namespace ScatterBot_v2.core.ErrorHandling
 {
-    public class ErrorHandler
+    public static class ErrorHandler
     {
-        private Services service;
-        private DiscordClient client;
-
-        public ErrorHandler(Services service, DiscordClient client)
-        {
-            this.service = service;
-            this.client = client;
-        }
-
-        public async Task HandleCommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
+        public static async Task HandleCommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
             var commandName = e.Command.Name;
             var member = e.Context.Member;

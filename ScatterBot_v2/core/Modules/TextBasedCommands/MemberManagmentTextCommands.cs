@@ -17,7 +17,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
     {
         public BonkedHelper bonkedHelper { private get; set; }
         public SaveSystem saveSystem { private get; set; }
-    
+
         [Group("access")]
         [RequirePermissions(Permissions.ModerateMembers)]
         public class ServerAccess : BaseCommandModule
@@ -30,8 +30,10 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             {
                 var mentions = new List<string>();
                 var accessRole = saveSystem.ServerData.accessRoleId;
-                foreach (var user in users) {
-                    if (user.HasRole(accessRole)) {
+                foreach (var user in users)
+                {
+                    if (user.HasRole(accessRole))
+                    {
                         continue;
                     }
 
@@ -51,42 +53,38 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             [Command("newusers")]
             public async Task AssignRolesToNewUser(CommandContext context)
             {
-                await newUserHelper.AssignRoles(context.Client);
+                await newUserHelper.AssignRoles();
             }
 
             [Command("automateaccess")]
-            public async Task AutomateWelcome()
+            public Task AutomateWelcome(CommandContext context)
             {
                 newUserHelper.StartAutomateUserWelcome();
+                return Task.CompletedTask;
             }
 
             [Command("stopautomateaccess")]
-            public async Task StopAutomateWelcome()
+            public Task StopAutomateWelcome(CommandContext context)
             {
                 newUserHelper.StopAutomateUserWelcome();
+                return Task.CompletedTask;
             }
 
-            [Command("banusername")]
+            [Command("ban")]
             [RequireUserPermissions(Permissions.BanMembers)]
-            public async Task BanAsync(CommandContext context, DiscordMember user, int time = 0, string reason = "")
+            public async Task BanAsync(CommandContext context, DiscordMember user, int time = 0, string reason = "ban")
             {
-                // await Context.Guild.AddBanAsync(user, time, reason);
-                // await Context.Client.LogToChannel($"{user.Username} has been banned.");
+                await context.Guild.BanMemberAsync(user, time, reason);
+                await context.Client.LogToChannel($"{user.Username} has been banned.", saveSystem.ServerData.botLogChannel);
             }
 
-            [Command("banid")]
+            [Command("ban_id")]
             [RequireUserPermissions(Permissions.BanMembers)]
             public async Task BanAsync(CommandContext context, ulong id, int time = 0, string reason = "")
             {
-                // await Context.Guild.AddBanAsync(id, time, reason);
-                // await Context.Client.LogToChannel($"{id} has been banned.");
+                await context.Guild.BanMemberAsync(id, time, reason);
+                await context.Client.LogToChannel($"{id} has been banned.", saveSystem.ServerData.botLogChannel);
             }
-        }
-
-        [Command("bonkid")]
-        public async Task Bonk(CommandContext context, ulong id, double time = 1)
-        {
-            await bonkedHelper.AddBonkedMember(id, time);
         }
 
         [Command("bonk")]
@@ -95,16 +93,22 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             await bonkedHelper.AddBonkedMember(user.Id, time);
         }
 
-        [Command("unbonkid")]
-        public async Task UnBonk(CommandContext context, ulong id)
+        [Command("bonk_id")]
+        public async Task Bonk(CommandContext context, ulong id, double time = 1)
         {
-            await bonkedHelper.UnbonkMember(id);
+            await bonkedHelper.AddBonkedMember(id, time);
         }
 
         [Command("unbonk")]
         public async Task UnBonk(CommandContext context, DiscordMember user)
         {
             await bonkedHelper.UnbonkMember(user.Id);
+        }
+
+        [Command("unbonkid")]
+        public async Task UnBonk(CommandContext context, ulong id)
+        {
+            await bonkedHelper.UnbonkMember(id);
         }
 
         [Command("addrole")]
@@ -118,24 +122,25 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         {
             await user.RevokeRoleAsync(roleName);
         }
-    
-        [Command("addrolebulk")]
+
+        [Command("addrole_bulk")]
         public async Task AddRoleBulk(CommandContext context, string roleName, params DiscordMember[] users)
         {
             var role = context.Guild.GetRole(roleName);
-            foreach (var user in users) {
+            foreach (var user in users)
+            {
                 await user.GrantRoleAsync(role);
             }
 
-            await context.Client.LogToChannel($"Granted {role} to {string.Join(", ", users.Select(u => u.Username))}", saveSystem.ServerData.botLogChannel);
-            await context.Message.DeleteAsync();
+            await context.RespondAsync($"Granted {role} to {string.Join(", ", users.Select(u => u.Username))}");
         }
-    
+
         [Command("bonkamount")]
         public async Task BonkAmount(CommandContext context)
         {
             var amount = saveSystem.ServerData.bonkedMembers.Length;
-            await context.Client.LogToChannel($"{amount.ToString()} people are bonked right now.", saveSystem.ServerData.botLogChannel);
+            await context.Guild.LogToChannel($"{amount.ToString()} people are bonked right now.",
+                saveSystem.ServerData.botLogChannel);
         }
     }
 }

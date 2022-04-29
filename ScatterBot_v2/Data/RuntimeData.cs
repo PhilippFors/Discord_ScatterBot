@@ -16,11 +16,6 @@ namespace ScatterBot_v2.Data
         public static string[] allChannelNames;
     }
 
-    public static class Moderation
-    {
-        public static ulong philUserId = 173193609795862529; // hard coding an admin (me)
-    }
-
     public static class Guild
     {
         public static ulong guildId = 967532421975273563; // like the only hardcoded thing
