@@ -63,6 +63,7 @@ namespace ScatterBot_v2
                 bonkedHelper = new BonkedHelper(saveSystem),
                 newUserHelper = new NewUserHelper(saveSystem),
                 pinHelper = new PinHelper(saveSystem),
+                memberManagmentService = new MemberManagementService(saveSystem)
             };
 
             await InitializeCommandHandlers();
@@ -87,6 +88,7 @@ namespace ScatterBot_v2
                 .AddSingleton(services.pinHelper)
                 .AddSingleton(services.saveSystem)
                 .AddSingleton(services.applicationHandler)
+                .AddSingleton(services.memberManagmentService)
                 .BuildServiceProvider();
 
             var config = new CommandsNextConfiguration()
@@ -98,7 +100,6 @@ namespace ScatterBot_v2
                 EnableMentionPrefix = false,
                 Services = di
             };
-
 
             _commands = _client.UseCommandsNext(config);
             _commands.RegisterCommands(Assembly.GetEntryAssembly());

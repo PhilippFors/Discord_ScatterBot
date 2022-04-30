@@ -12,7 +12,6 @@ namespace ScatterBot_v2.Serialization
 
         [ProtoMember(3)] public ulong botLogChannel { get; set; }
 
-        [ProtoMember(9)] public Dictionary<ulong, ulong> monitorArchiveChannel { get; set; }
         [ProtoMember(4)] public ulong mutedRoleId { get; set; }
 
         [ProtoMember(5)] public ulong accessRoleId { get; set; }
@@ -20,6 +19,8 @@ namespace ScatterBot_v2.Serialization
         [ProtoMember(6)] public MessageSaveData[] newIntroductions { get; set; }
         [ProtoMember(7)] public BonkedMember[] bonkedMembers { get; set; }
         [ProtoMember(8)] public ulong[] newUsers { get; set; }
+        [ProtoMember(9)] public Dictionary<ulong, ulong> monitorArchiveChannel { get; set; }
+        [ProtoMember(10)] public Dictionary<ulong, int> userWarnings { get; set; }
     }
 
     [ProtoContract]

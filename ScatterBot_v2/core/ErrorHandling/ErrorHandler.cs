@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Exceptions;
+using Serilog;
 
 namespace ScatterBot_v2.core.ErrorHandling
 {
@@ -22,6 +23,7 @@ namespace ScatterBot_v2.core.ErrorHandling
                     break;
                 default:
                     message = $"{member.Mention}, {commandName} failed with an exception: \"{e.Exception.Message}\". Check logs for more details.";
+                    Log.Logger.Error(e.Exception, "Something went wrong with a command");
                     break;
             }
         

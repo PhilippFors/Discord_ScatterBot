@@ -7,6 +7,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.core.Helpers;
+using ScatterBot_v2.Data;
 using ScatterBot_v2.Serialization;
 
 namespace ScatterBot_v2.core.Modules.TextBasedCommands
@@ -17,6 +18,8 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
     {
         public BonkedHelper bonkedHelper { private get; set; }
         public SaveSystem saveSystem { private get; set; }
+        public MemberManagementService memberManagmentService { private get; set; }
+
 
         [Group("access")]
         [RequirePermissions(Permissions.ModerateMembers)]
@@ -69,22 +72,47 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
                 newUserHelper.StopAutomateUserWelcome();
                 return Task.CompletedTask;
             }
+        }
 
-            [Command("ban")]
-            [RequireUserPermissions(Permissions.BanMembers)]
-            public async Task BanAsync(CommandContext context, DiscordMember user, int time = 0, string reason = "ban")
-            {
-                await context.Guild.BanMemberAsync(user, time, reason);
-                await context.Client.LogToChannel($"{user.Username} has been banned.", saveSystem.ServerData.botLogChannel);
-            }
+        [Command("ban")]
+        [RequireUserPermissions(Permissions.BanMembers)]
+        public async Task BanAsync(CommandContext context, DiscordMember user, int deleteMessageDays = 0,
+            [RemainingText] string reason = "ban")
+        {
+            await memberManagmentService.BanMember(context, user, deleteMessageDays, reason);
+        }
 
-            [Command("ban_id")]
-            [RequireUserPermissions(Permissions.BanMembers)]
-            public async Task BanAsync(CommandContext context, ulong id, int time = 0, string reason = "")
+        [Command("ban_id")]
+        [RequireUserPermissions(Permissions.BanMembers)]
+        public async Task BanAsync(CommandContext context, ulong id, int deleteMessageDays = 0,
+            [RemainingText] string reason = "")
+        {
+            var user = await Guild.guild.GetMemberAsync(id);
+            await memberManagmentService.BanMember(context, user, deleteMessageDays, reason);
+        }
+
+        [Command("warn")]
+        public async Task Warn(CommandContext context, DiscordMember user, bool bonk = false, double bonkTime = 1, [RemainingText] string reason = "")
+        {
+            memberManagmentService.WarnMember(context, user, reason);
+            if (bonk)
             {
-                await context.Guild.BanMemberAsync(id, time, reason);
-                await context.Client.LogToChannel($"{id} has been banned.", saveSystem.ServerData.botLogChannel);
+                await bonkedHelper.AddBonkedMember(user.Id, bonkTime);
             }
+        }
+
+        [Command("checkwarning")]
+        public Task CheckWarn(CommandContext context, DiscordMember user)
+        {
+            memberManagmentService.QueryWarn(context, user);
+            return Task.CompletedTask;
+        }
+
+        [Command("removewarning")]
+        public Task RemoveWarn(CommandContext context, DiscordMember user, int warnings)
+        {
+            memberManagmentService.RemoveWarnings(context, user, warnings);
+            return Task.CompletedTask;
         }
 
         [Command("bonk")]
