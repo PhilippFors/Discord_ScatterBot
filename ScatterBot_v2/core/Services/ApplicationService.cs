@@ -2,22 +2,25 @@
 using System.IO;
 using System.Threading;
 
-namespace ScatterBot_v2.core.Helpers
+namespace ScatterBot_v2.core.Services
 {
-    public class ApplicationHandler
+    /// <summary>
+    /// Managing the application itself.
+    /// </summary>
+    public class ApplicationService
     {
-        public CancellationTokenSource ctx;
+        public CancellationTokenSource applicationTerminationToken;
         private string appPath => Directory.GetCurrentDirectory();
 
-        public ApplicationHandler()
+        public ApplicationService()
         {
-            ctx = new CancellationTokenSource();
+            applicationTerminationToken = new CancellationTokenSource();
             InitProcessId();
         }
     
         public void Cancel()
         {
-            ctx.Cancel();
+            applicationTerminationToken.Cancel();
         }
     
         private void InitProcessId()

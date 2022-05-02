@@ -7,15 +7,18 @@ using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.Data;
 using ScatterBot_v2.Serialization;
 
-namespace ScatterBot_v2.core.Helpers
+namespace ScatterBot_v2.core.Services
 {
-    public class BonkedHelper
+    /// <summary>
+    /// Helps with assigning a muted role to a user and checking if the specified muted time has expired.
+    /// </summary>
+    public class MuteHelperService
     {
         private SaveSystem saveSystem;
 
         private List<BonkedMember> tempBonked;
 
-        public BonkedHelper(SaveSystem saveSystem)
+        public MuteHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
             if (saveSystem.ServerData.bonkedMembers == null || saveSystem.ServerData.bonkedMembers.Length == 0)

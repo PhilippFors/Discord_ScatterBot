@@ -4,14 +4,17 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using ScatterBot_v2.Serialization;
 
-namespace ScatterBot_v2.core.Helpers
+namespace ScatterBot_v2.core.Services
 {
-    public class MemberManagementService
+    /// <summary>
+    /// General member moderation stuff.
+    /// </summary>
+    public class MemberModerationService
     {
         private Dictionary<ulong, int> warnings => saveSystem.ServerData.userWarnings;
         private SaveSystem saveSystem;
         
-        public MemberManagementService(SaveSystem saveSystem)
+        public MemberModerationService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
             if(saveSystem.ServerData.userWarnings == null){

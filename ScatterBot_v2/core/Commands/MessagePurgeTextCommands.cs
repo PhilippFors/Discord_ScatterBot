@@ -8,7 +8,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
 
-namespace ScatterBot_v2.core.Modules.TextBasedCommands
+namespace ScatterBot_v2.core.Commands
 {
     [Group("purge")]
     [RequireUserPermissions(Permissions.Administrator)]

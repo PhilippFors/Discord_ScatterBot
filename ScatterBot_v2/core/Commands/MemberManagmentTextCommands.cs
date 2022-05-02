@@ -6,29 +6,29 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
-using ScatterBot_v2.core.Helpers;
+using ScatterBot_v2.core.Services;
 using ScatterBot_v2.Data;
 using ScatterBot_v2.Serialization;
 
-namespace ScatterBot_v2.core.Modules.TextBasedCommands
+namespace ScatterBot_v2.core.Commands
 {
-    [Group("admin")]
+    [Group("mod")]
     [RequirePermissions(Permissions.ModerateMembers)]
     public class MemberManagementTextCommands : BaseCommandModule
     {
-        public BonkedHelper bonkedHelper { private get; set; }
+        public MuteHelperService MuteHelperService { private get; set; }
         public SaveSystem saveSystem { private get; set; }
-        public MemberManagementService memberManagmentService { private get; set; }
+        public MemberModerationService memberManagmentService { private get; set; }
 
 
         [Group("access")]
         [RequirePermissions(Permissions.ModerateMembers)]
         public class ServerAccess : BaseCommandModule
         {
-            public NewUserHelper newUserHelper { private get; set; }
+            public NewUserHelperService NewUserHelperService { private get; set; }
             public SaveSystem saveSystem { private get; set; }
 
-            [Command("direct")]
+            [GroupCommand]
             public async Task GrantAccess(CommandContext context, params DiscordMember[] users)
             {
                 var mentions = new List<string>();
@@ -40,7 +40,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
                         continue;
                     }
 
-                    newUserHelper.RemoveUser(user.Id);
+                    NewUserHelperService.RemoveUser(user.Id);
                     mentions.Add(user.Mention);
                     await user.GrantRoleAsync(
                         context.Guild.GetRole(accessRole)
@@ -56,20 +56,20 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             [Command("newusers")]
             public async Task AssignRolesToNewUser(CommandContext context)
             {
-                await newUserHelper.AssignRoles();
+                await NewUserHelperService.AssignRoles();
             }
 
-            [Command("automateaccess")]
+            [Command("automate")]
             public Task AutomateWelcome(CommandContext context)
             {
-                newUserHelper.StartAutomateUserWelcome();
+                NewUserHelperService.StartAutomateUserWelcome();
                 return Task.CompletedTask;
             }
 
-            [Command("stopautomateaccess")]
+            [Command("stopautomate")]
             public Task StopAutomateWelcome(CommandContext context)
             {
-                newUserHelper.StopAutomateUserWelcome();
+                NewUserHelperService.StopAutomateUserWelcome();
                 return Task.CompletedTask;
             }
         }
@@ -82,7 +82,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             await memberManagmentService.BanMember(context, user, deleteMessageDays, reason);
         }
 
-        [Command("ban_id")]
+        [Command("ban")]
         [RequireUserPermissions(Permissions.BanMembers)]
         public async Task BanAsync(CommandContext context, ulong id, int deleteMessageDays = 0,
             [RemainingText] string reason = "")
@@ -97,7 +97,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
             memberManagmentService.WarnMember(context, user, reason);
             if (bonk)
             {
-                await bonkedHelper.AddBonkedMember(user.Id, bonkTime);
+                await MuteHelperService.AddBonkedMember(user.Id, bonkTime);
             }
         }
 
@@ -116,27 +116,27 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         }
 
         [Command("bonk")]
-        public async Task Bonk(CommandContext context, DiscordMember user, double time = 1)
+        public async Task Bonk(CommandContext context, DiscordMember user, double time = 5)
         {
-            await bonkedHelper.AddBonkedMember(user.Id, time);
+            await MuteHelperService.AddBonkedMember(user.Id, time);
         }
 
-        [Command("bonk_id")]
-        public async Task Bonk(CommandContext context, ulong id, double time = 1)
+        [Command("bonk")]
+        public async Task Bonk(CommandContext context, ulong id, double time = 5)
         {
-            await bonkedHelper.AddBonkedMember(id, time);
+            await MuteHelperService.AddBonkedMember(id, time);
         }
 
         [Command("unbonk")]
         public async Task UnBonk(CommandContext context, DiscordMember user)
         {
-            await bonkedHelper.UnbonkMember(user.Id);
+            await MuteHelperService.UnbonkMember(user.Id);
         }
 
-        [Command("unbonkid")]
+        [Command("unbonk")]
         public async Task UnBonk(CommandContext context, ulong id)
         {
-            await bonkedHelper.UnbonkMember(id);
+            await MuteHelperService.UnbonkMember(id);
         }
 
         [Command("addrole")]
@@ -167,8 +167,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         public async Task BonkAmount(CommandContext context)
         {
             var amount = saveSystem.ServerData.bonkedMembers.Length;
-            await context.Guild.LogToChannel($"{amount.ToString()} people are bonked right now.",
-                saveSystem.ServerData.botLogChannel);
+            await context.Guild.LogToChannel($"{amount.ToString()} people are bonked right now.", saveSystem.ServerData.botLogChannel);
         }
     }
 }

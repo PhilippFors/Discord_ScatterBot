@@ -3,6 +3,10 @@ using ProtoBuf;
 
 namespace ScatterBot_v2.Serialization
 {
+    /// <summary>
+    /// Config data for the bot.
+    /// Saved in case of a shutdown or unexpected crash.
+    /// </summary>
     [ProtoContract]
     public class ServerData
     {

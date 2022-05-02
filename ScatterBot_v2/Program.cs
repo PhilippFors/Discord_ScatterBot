@@ -9,18 +9,22 @@ using Microsoft.Extensions.Logging;
 using ScatterBot_v2.core;
 using ScatterBot_v2.core.ErrorHandling;
 using ScatterBot_v2.core.Extensions;
-using ScatterBot_v2.core.Helpers;
+using ScatterBot_v2.core.Services;
 using ScatterBot_v2.Data;
 using ScatterBot_v2.Serialization;
 using Serilog;
+using ServiceCollection = ScatterBot_v2.core.Services.ServiceCollection;
 
 namespace ScatterBot_v2
 {
+    /// <summary>
+    /// Initializes the bot and various services.
+    /// </summary>
     public class Program
     {
         private DiscordClient _client;
         private CommandsNextExtension _commands;
-        private Services services;
+        private ServiceCollection serviceCollection;
 
         // Entry point
         public static void Main() =>
@@ -52,43 +56,43 @@ namespace ScatterBot_v2
                 }
             );
 
-            var applicationHandler = new ApplicationHandler();
+            var applicationHandler = new ApplicationService();
             var saveSystem = new SaveSystem();
             saveSystem.LoadData();
 
-            services = new Services()
+            serviceCollection = new ServiceCollection()
             {
-                saveSystem = saveSystem,
-                applicationHandler = applicationHandler,
-                bonkedHelper = new BonkedHelper(saveSystem),
-                newUserHelper = new NewUserHelper(saveSystem),
-                pinHelper = new PinHelper(saveSystem),
-                memberManagmentService = new MemberManagementService(saveSystem)
+                SaveSystem = saveSystem,
+                ApplicationService = applicationHandler,
+                MuteHelperService = new MuteHelperService(saveSystem),
+                NewUserHelperService = new NewUserHelperService(saveSystem),
+                PinHelperService = new PinHelperService(saveSystem),
+                MemberModerationService = new MemberModerationService(saveSystem)
             };
 
             await InitializeCommandHandlers();
             await _client.ConnectAsync();
 
             Guild.guild = await _client.GetGuildAsync(Guild.guildId);
-            await services.saveSystem.InitializeRuntimeData(Guild.guild);
+            await serviceCollection.SaveSystem.InitializeRuntimeData(Guild.guild);
 
             _client.ChannelPinsUpdated += HandleChannelPinsUpdated;
             _client.MessageCreated += HandleMessagesCreated;
-            _client.GuildMemberAdded += (ctx, args) => services.newUserHelper.AddUser(args.Member.Id);
+            _client.GuildMemberAdded += (ctx, args) => serviceCollection.NewUserHelperService.AddUser(args.Member.Id);
 
             // exit when program closes or token is canceled
-            await Task.Delay(-1, applicationHandler.ctx.Token);
+            await Task.Delay(-1, applicationHandler.applicationTerminationToken.Token);
         }
 
         private Task InitializeCommandHandlers()
         {
-            var di = new ServiceCollection()
-                .AddSingleton(services.bonkedHelper)
-                .AddSingleton(services.newUserHelper)
-                .AddSingleton(services.pinHelper)
-                .AddSingleton(services.saveSystem)
-                .AddSingleton(services.applicationHandler)
-                .AddSingleton(services.memberManagmentService)
+            var di = new Microsoft.Extensions.DependencyInjection.ServiceCollection()
+                .AddSingleton(serviceCollection.MuteHelperService)
+                .AddSingleton(serviceCollection.NewUserHelperService)
+                .AddSingleton(serviceCollection.PinHelperService)
+                .AddSingleton(serviceCollection.SaveSystem)
+                .AddSingleton(serviceCollection.ApplicationService)
+                .AddSingleton(serviceCollection.MemberModerationService)
                 .BuildServiceProvider();
 
             var config = new CommandsNextConfiguration()
@@ -111,18 +115,18 @@ namespace ScatterBot_v2
         private async Task HandleMessagesCreated(DiscordClient client, MessageCreateEventArgs eventArgs)
         {
             var message = eventArgs.Message;
-            if (message.Channel.Id != services.saveSystem.ServerData.welcomeChannel)
+            if (message.Channel.Id != serviceCollection.SaveSystem.ServerData.welcomeChannel)
             {
                 return;
             }
 
             // new user messages will be logged and can be used later for automatic acceptance
-            await services.newUserHelper.AddWelcomeMessage(message);
+            await serviceCollection.NewUserHelperService.AddWelcomeMessage(message);
 
             // Bonked users can still type in welcome so this bonks 'em again
             var author = message.Author;
 
-            if (services.bonkedHelper.IsBonked(author.Id))
+            if (serviceCollection.MuteHelperService.IsBonked(author.Id))
             {
                 var response = await eventArgs.Message.RespondAsync($"No talking for you {author.Mention}.");
                 await message.DeleteAsync();
@@ -132,7 +136,7 @@ namespace ScatterBot_v2
 
         private async Task HandleChannelPinsUpdated(DiscordClient client, ChannelPinsUpdateEventArgs eventArgs)
         {
-            await services.pinHelper.Pin(eventArgs.Channel, client);
+            await serviceCollection.PinHelperService.Pin(eventArgs.Channel, client);
         }
     }
 }

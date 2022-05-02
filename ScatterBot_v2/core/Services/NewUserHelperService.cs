@@ -1,16 +1,19 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.Data;
 using ScatterBot_v2.Serialization;
 
-namespace ScatterBot_v2.core.Helpers
+namespace ScatterBot_v2.core.Services
 {
-    public class NewUserHelper
+    /// <summary>
+    /// Tracks new users and introduction messages.
+    /// Can assign access roles in bulk to new users with welcome messages and notifies the new users.
+    /// </summary>
+    public class NewUserHelperService
     {
         private string WelcomeMessageStart => "Hello and welcome";
 
@@ -24,7 +27,7 @@ namespace ScatterBot_v2.core.Helpers
         private List<ulong> newUsers;
         private List<MessageSaveData> introductions;
 
-        public NewUserHelper(SaveSystem saveSystem)
+        public NewUserHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
             Initialize();

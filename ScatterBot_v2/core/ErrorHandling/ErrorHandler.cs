@@ -5,6 +5,9 @@ using Serilog;
 
 namespace ScatterBot_v2.core.ErrorHandling
 {
+    /// <summary>
+    /// Responds with an error message and logs exceptions to a file.
+    /// </summary>
     public static class ErrorHandler
     {
         public static async Task HandleCommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)

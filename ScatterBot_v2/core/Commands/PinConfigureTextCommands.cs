@@ -4,23 +4,24 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
-using ScatterBot_v2.core.Helpers;
+using ScatterBot_v2.core.Services;
 using ScatterBot_v2.Serialization;
 
-namespace ScatterBot_v2.core.Modules.TextBasedCommands
+namespace ScatterBot_v2.core.Commands
 {
     [Group("pin")]
     [RequirePermissions(Permissions.ManageChannels)]
     public class PinConfigureTextCommands : BaseCommandModule
     {
-        public PinHelper pinHelper { private get; set; }
+        public PinHelperService PinHelperService { private get; set; }
         public SaveSystem saveSystem { private get; set; }
+        
         [Command("monitor")]
         public async Task Pin(CommandContext context, string monitorId, string archiveId)
         {
             var monitor = await context.Client.GetChannel(monitorId);
             var archive = await context.Client.GetChannel(archiveId);
-            pinHelper.AddChannel(monitor.Id, archive.Id);
+            PinHelperService.AddChannel(monitor.Id, archive.Id);
             await Log(context,$"Archiving {monitor.Name} in {archive.Name}");
         }
 
@@ -36,7 +37,7 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
                 return;
             }
             
-            pinHelper.AddChannel(monitorId, archiveId);
+            PinHelperService.AddChannel(monitorId, archiveId);
             await Log(context,$"Archiving {monitor.Name} in {archive.Name}");
         }
 
@@ -44,14 +45,14 @@ namespace ScatterBot_v2.core.Modules.TextBasedCommands
         public async Task UnPin(CommandContext context, string channelId)
         {
             var channel = await context.Client.GetChannel(channelId);
-            pinHelper.RemoveChannel(channel.Id);
+            PinHelperService.RemoveChannel(channel.Id);
             await Log(context,$"Unmonitoring channel {channel.Name}");
         }
 
         [Command("unmonitor")]
         public async Task UnPin(CommandContext context, DiscordChannel channelId)
         {
-            pinHelper.RemoveChannel(channelId.Id);
+            PinHelperService.RemoveChannel(channelId.Id);
             await Log(context,$"Unmonitoring channel {channelId.Name}");
         }
 

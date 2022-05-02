@@ -2,6 +2,7 @@
 
 namespace ScatterBot_v2.Data
 {
+    // Data collected at startup and used throughout the bot
     public static class Roles
     {
         public static ulong[] allRoleIds;

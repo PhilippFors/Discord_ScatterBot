@@ -6,6 +6,10 @@ using ScatterBot_v2.Data;
 
 namespace ScatterBot_v2.Serialization
 {
+    /// <summary>
+    /// Serializes and deserializes <see cref="ServerData"/>.
+    /// Initialized runtime data.
+    /// </summary>
     public class SaveSystem
     {
         public ServerData ServerData => serverData;

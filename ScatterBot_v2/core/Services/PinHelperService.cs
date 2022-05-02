@@ -9,14 +9,17 @@ using DSharpPlus.Entities;
 using ScatterBot_v2.core.Extensions;
 using ScatterBot_v2.Serialization;
 
-namespace ScatterBot_v2.core.Helpers
+namespace ScatterBot_v2.core.Services
 {
-    public class PinHelper
+    /// <summary>
+    /// System for archiving messages from a monitored channel to a specified archiving channel.
+    /// </summary>
+    public class PinHelperService
     {
         private SaveSystem saveSystem;
         private Dictionary<ulong, ulong> monitorArchive => saveSystem.ServerData.monitorArchiveChannel;
 
-        public PinHelper(SaveSystem saveSystem)
+        public PinHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
 
