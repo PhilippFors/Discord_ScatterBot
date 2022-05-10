@@ -8,7 +8,7 @@ namespace ScatterBot_v2.core.Commands;
 
 [Group("application")]
 [RequireUserPermissions(Permissions.Administrator)]
-public class ApplicationTextCommands : BaseCommandModule
+public class ApplicationCommands : BaseCommandModule
 {
     public ApplicationService handler { private get; set; }
 

@@ -11,7 +11,7 @@ namespace ScatterBot_v2.core.Commands
 {
     [Group("pin")]
     [RequirePermissions(Permissions.ManageChannels)]
-    public class PinConfigureTextCommands : BaseCommandModule
+    public class ArchiveConfigCommands : BaseCommandModule
     {
         public PinHelperService PinHelperService { private get; set; }
         public SaveSystem saveSystem { private get; set; }

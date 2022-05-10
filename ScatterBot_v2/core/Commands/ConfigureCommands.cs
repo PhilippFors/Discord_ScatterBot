@@ -9,7 +9,7 @@ namespace ScatterBot_v2.core.Commands
 {
     [Group("init")]
     [RequireUserPermissions(Permissions.Administrator)]
-    public class InitializeTextCommands : BaseCommandModule
+    public class ConfigureCommands : BaseCommandModule
     {
         public SaveSystem saveSytem { private get; set; }
 

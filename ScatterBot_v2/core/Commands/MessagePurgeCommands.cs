@@ -12,7 +12,7 @@ namespace ScatterBot_v2.core.Commands
 {
     [Group("purge")]
     [RequireUserPermissions(Permissions.Administrator)]
-    public class MessagePurgeTextCommands : BaseCommandModule
+    public class MessagePurgeCommands : BaseCommandModule
     {
         [Command("channel")]
         public async Task PurgeChannelMessages(CommandContext context, int amount, string channelId = "")
