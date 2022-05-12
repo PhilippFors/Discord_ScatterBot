@@ -32,13 +32,15 @@ namespace ScatterBot_v2.core.Services
         public void AddChannel(ulong monitor, ulong archive)
         {
             monitorArchive.Add(monitor, archive);
-            saveSystem.SaveData();
+            Save();
+            // saveSystem.SaveData();
         }
 
         public void RemoveChannel(ulong monitor)
         {
             monitorArchive.Remove(monitor);
-            saveSystem.SaveData();
+            Save();
+            // saveSystem.SaveData();
         }
 
         public async Task Pin(DiscordChannel channel, DiscordClient client)

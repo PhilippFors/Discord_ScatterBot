@@ -88,13 +88,13 @@ namespace ScatterBot_v2.Serialization
 
         public void SaveAs<T>(T data)
         {
-            using var file = File.OpenWrite(appPath + configPath + nameof(T));
+            using var file = File.OpenWrite(appPath + configPath + typeof(T));
             Serializer.Serialize(file, data);
         }
 
         public T LoadAs<T>() where T : new()
         {
-            var path = appPath + configPath + nameof(T);
+            var path = appPath + configPath + typeof(T);
             if (!File.Exists(path))
             {
                 File.Create(path).Close();
