@@ -44,4 +44,10 @@ namespace ScatterBot_v2.Serialization
         [ProtoMember(2)] public ulong messageId { get; set; }
         [ProtoMember(3)] public ulong userId { get; set; }
     }
+
+    [ProtoContract]
+    public class PinConfig
+    {
+        [ProtoMember(1)] public Dictionary<ulong, ulong> monitorArchiveChannel { get; set; }
+    }
 }

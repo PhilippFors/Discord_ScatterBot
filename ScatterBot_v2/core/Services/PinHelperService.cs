@@ -14,17 +14,18 @@ namespace ScatterBot_v2.core.Services
     /// <summary>
     /// System for archiving messages from a monitored channel to a specified archiving channel.
     /// </summary>
-    public class PinHelperService
+    public class PinHelperService : ISaveable
     {
         private SaveSystem saveSystem;
-        private Dictionary<ulong, ulong> monitorArchive => saveSystem.ServerData.monitorArchiveChannel;
-
+        private Dictionary<ulong, ulong> monitorArchive => pinConfig.monitorArchiveChannel;
+        private PinConfig pinConfig;
+        
         public PinHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
-
+            Load();
             if (monitorArchive == null) {
-                saveSystem.ServerData.monitorArchiveChannel = new Dictionary<ulong, ulong>();
+                pinConfig.monitorArchiveChannel = new Dictionary<ulong, ulong>();
             }
         }
 
@@ -88,6 +89,16 @@ namespace ScatterBot_v2.core.Services
                 await client.LogToChannel($"Archived {message.Author.Username}'s message to {postChannel.Name}",
                     saveSystem.ServerData.botLogChannel);
             }
+        }
+
+        public void Save()
+        {
+            saveSystem.SaveAs<PinConfig>(pinConfig);
+        }
+
+        public void Load()
+        {
+            pinConfig = saveSystem.LoadAs<PinConfig>();
         }
     }
 }

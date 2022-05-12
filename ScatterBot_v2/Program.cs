@@ -70,6 +70,7 @@ namespace ScatterBot_v2
                 MemberModerationService = new MemberModerationService(saveSystem)
             };
 
+            
             await InitializeCommandHandlers();
             await _client.ConnectAsync();
 
