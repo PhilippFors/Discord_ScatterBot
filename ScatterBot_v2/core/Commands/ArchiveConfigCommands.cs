@@ -58,7 +58,7 @@ namespace ScatterBot_v2.core.Commands
 
         private async Task Log(CommandContext context, string msg)
         {
-            await context.Client.LogToChannel(msg, saveSystem.ServerData.botLogChannel);
+            await context.Client.LogToChannel(msg, saveSystem.LoadAs<ChannelConfigs>().botLogChannel);
         }
     }
 }

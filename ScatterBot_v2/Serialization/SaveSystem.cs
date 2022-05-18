@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using ProtoBuf;
@@ -12,39 +13,12 @@ namespace ScatterBot_v2.Serialization
     /// </summary>
     public class SaveSystem
     {
-        public ServerData ServerData => serverData;
-        private ServerData serverData;
+        // public ServerData ServerData => serverData;
+        // private ServerData serverData;
         private string appPath => Directory.GetCurrentDirectory();
         private string configPath = "/config/";
-        private string configName = "saveData.save";
-        private string FullPath => appPath + configPath + configName;
-
-        public void LoadData()
-        {
-            if (!Directory.Exists(appPath + configPath))
-            {
-                Directory.CreateDirectory(appPath + configPath);
-            }
-
-            if (!File.Exists(FullPath))
-            {
-                File.Create(FullPath).Close();
-                serverData = new ServerData();
-                return;
-            }
-
-            using var file = File.OpenRead(FullPath);
-
-            serverData = Serializer.Deserialize<ServerData>(file);
-        }
-
-        public Task SaveData()
-        {
-            using var file = File.OpenWrite(FullPath);
-
-            Serializer.Serialize(file, serverData);
-            return Task.CompletedTask;
-        }
+        private string SavePath => appPath + configPath;
+        private Dictionary<string, object> dataCache = new Dictionary<string, object>();
 
         public async Task InitializeRuntimeData(DiscordGuild guild)
         {
@@ -88,22 +62,31 @@ namespace ScatterBot_v2.Serialization
 
         public void SaveAs<T>(T data)
         {
-            using var file = File.OpenWrite(appPath + configPath + typeof(T));
+            using var file = File.OpenWrite(SavePath + typeof(T));
             Serializer.Serialize(file, data);
         }
 
         public T LoadAs<T>() where T : new()
         {
-            var path = appPath + configPath + typeof(T);
+            if(dataCache.ContainsKey(typeof(T).ToString()))
+            {
+                return (T)dataCache[typeof(T).ToString()];
+            }
+            
+            var path = SavePath + typeof(T);
+            T data = default;
             if (!File.Exists(path))
             {
                 File.Create(path).Close();
-                var t = new T();
-                return t;
+                data = new T();
+                dataCache.Add(typeof(T).ToString(), data);
+                return data;
             }
 
             using var file = File.OpenRead(path);
-            return Serializer.Deserialize<T>(file);
+            data = Serializer.Deserialize<T>(file);
+            dataCache.Add(typeof(T).ToString(), data);
+            return data;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace ScatterBot_v2.core.Services
     /// Tracks new users and introduction messages.
     /// Can assign access roles in bulk to new users with welcome messages and notifies the new users.
     /// </summary>
-    public class NewUserHelperService
+    public class NewUserHelperService : ISaveable
     {
         private string WelcomeMessageStart => "Hello and welcome";
 
@@ -22,23 +22,17 @@ namespace ScatterBot_v2.core.Services
         private int minMessageCount = 20;
         private bool automateUserWelcome;
 
-        private SaveSystem saveSystem;
-        private ulong AccessRole => saveSystem.ServerData.accessRoleId;
+        private readonly SaveSystem saveSystem;
+        private ServerData serverData;
+        private ChannelConfigs channelConfigs;
+        private RoleData roleData;
         private List<ulong> newUsers;
         private List<MessageSaveData> introductions;
 
         public NewUserHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            newUsers = saveSystem.ServerData.newUsers == null ?
-                new List<ulong>() : saveSystem.ServerData.newUsers.ToList();
-            introductions = saveSystem.ServerData.newIntroductions == null ?
-                new List<MessageSaveData>() : saveSystem.ServerData.newIntroductions.ToList();
+            Load();
         }
 
         public void StartAutomateUserWelcome()
@@ -55,7 +49,7 @@ namespace ScatterBot_v2.core.Services
         {
             var guild = Guild.guild;
             var user = await guild.GetMemberAsync(message.Author.Id);
-            if (user.HasRole(AccessRole)) {
+            if (user.HasRole(roleData.accessRoleId)) {
                 return;
             }
 
@@ -100,13 +94,13 @@ namespace ScatterBot_v2.core.Services
             var shortIntroList = new List<string>();
 
             var guild = Guild.guild;
-            var welcomeChannel = guild.GetChannel(saveSystem.ServerData.welcomeChannel);
+            var welcomeChannel = guild.GetChannel(channelConfigs.welcomeChannel);
 
             for (int i = 0; i < introductions.Count; i++) {
                 var data = introductions[i];
                 var user = await guild.GetMemberAsync(data.userId);
 
-                if (user.HasRole(saveSystem.ServerData.accessRoleId)) {
+                if (user.HasRole(roleData.accessRoleId)) {
                     continue;
                 }
                 
@@ -120,7 +114,7 @@ namespace ScatterBot_v2.core.Services
                 }
 
                 await user.GrantRoleAsync(
-                    guild.GetRole(AccessRole)
+                    guild.GetRole(roleData.accessRoleId)
                 );
                 break;
             }
@@ -142,12 +136,21 @@ namespace ScatterBot_v2.core.Services
 
             Save();
         }
-
-        private void Save()
+        
+        public void Save()
         {
-            saveSystem.ServerData.newIntroductions = introductions.ToArray();
-            saveSystem.ServerData.newUsers = newUsers.ToArray();
-            saveSystem.SaveData();
+            serverData.newIntroductions = introductions.ToArray();
+            serverData.newUsers = newUsers.ToArray();
+            saveSystem.SaveAs<ServerData>(serverData);
+        }
+        
+        public void Load()
+        {
+            channelConfigs = saveSystem.LoadAs<ChannelConfigs>();
+            roleData = saveSystem.LoadAs<RoleData>();
+            serverData = saveSystem.LoadAs<ServerData>();
+            newUsers = serverData.newUsers == null ? new List<ulong>() : serverData.newUsers.ToList();
+            introductions = serverData.newIntroductions == null ? new List<MessageSaveData>() : serverData.newIntroductions.ToList();
         }
     }
 }

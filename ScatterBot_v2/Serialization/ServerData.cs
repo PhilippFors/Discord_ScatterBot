@@ -11,19 +11,8 @@ namespace ScatterBot_v2.Serialization
     public class ServerData
     {
         [ProtoMember(1)] public ulong guildId { get; set; }
-
-        [ProtoMember(2)] public ulong welcomeChannel { get; set; }
-
-        [ProtoMember(3)] public ulong botLogChannel { get; set; }
-
-        [ProtoMember(4)] public ulong mutedRoleId { get; set; }
-
-        [ProtoMember(5)] public ulong accessRoleId { get; set; }
-
         [ProtoMember(6)] public MessageSaveData[] newIntroductions { get; set; }
-        [ProtoMember(7)] public BonkedMember[] bonkedMembers { get; set; }
         [ProtoMember(8)] public ulong[] newUsers { get; set; }
-        [ProtoMember(9)] public Dictionary<ulong, ulong> monitorArchiveChannel { get; set; }
         [ProtoMember(10)] public Dictionary<ulong, int> userWarnings { get; set; }
     }
 
@@ -38,6 +27,20 @@ namespace ScatterBot_v2.Serialization
     }
 
     [ProtoContract]
+    public class RoleData
+    {
+        [ProtoMember(4)] public ulong mutedRoleId { get; set; }
+
+        [ProtoMember(5)] public ulong accessRoleId { get; set; }
+    }
+
+    [ProtoContract]
+    public class BonkedData
+    {
+        [ProtoMember(1)] public BonkedMember[] bonkedMembers { get; set; }
+    }
+
+    [ProtoContract]
     public class MessageSaveData
     {
         [ProtoMember(1)] public ulong channel { get; set; }
@@ -46,8 +49,10 @@ namespace ScatterBot_v2.Serialization
     }
 
     [ProtoContract]
-    public class PinConfig
+    public class ChannelConfigs
     {
         [ProtoMember(1)] public Dictionary<ulong, ulong> monitorArchiveChannel { get; set; }
+        [ProtoMember(2)] public ulong welcomeChannel { get; set; }
+        [ProtoMember(3)] public ulong botLogChannel { get; set; }
     }
 }

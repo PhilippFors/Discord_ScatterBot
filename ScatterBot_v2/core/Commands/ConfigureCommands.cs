@@ -11,40 +11,42 @@ namespace ScatterBot_v2.core.Commands
     [RequireUserPermissions(Permissions.Administrator)]
     public class ConfigureCommands : BaseCommandModule
     {
-        public SaveSystem saveSytem { private get; set; }
-
+        public SaveSystem saveSytem { get; set; }
+        
         [Command("welcome")]
-        public async Task InitWelcomeChannel(CommandContext context, ulong channelId)
+        public Task InitWelcomeChannel(CommandContext context, ulong channelId)
         {
-            saveSytem.ServerData.welcomeChannel = channelId;
-            await saveSytem.SaveData();
+            var config = saveSytem.LoadAs<ChannelConfigs>();
+            config.welcomeChannel = channelId;
+            saveSytem.SaveAs<ChannelConfigs>(config);
+            return Task.CompletedTask;
         }
 
         [Command("botlog")]
-        public async Task InitBotLogChannel(CommandContext context, ulong channelId)
+        public Task InitBotLogChannel(CommandContext context, ulong channelId)
         {
-            saveSytem.ServerData.botLogChannel = channelId;
-            await saveSytem.SaveData();
+            var config = saveSytem.LoadAs<ChannelConfigs>();
+            config.botLogChannel = channelId;
+            saveSytem.SaveAs<ChannelConfigs>(config);
+            return Task.CompletedTask;
         }
 
         [Command("muted")]
-        public async Task InitWelcomeChannel(CommandContext context, DiscordRole mutedRole)
+        public Task InitWelcomeChannel(CommandContext context, DiscordRole mutedRole)
         {
-            saveSytem.ServerData.mutedRoleId = mutedRole.Id;
-            await saveSytem.SaveData();
+            var roles = saveSytem.LoadAs<RoleData>();
+            roles.mutedRoleId = mutedRole.Id;
+            saveSytem.SaveAs<RoleData>(roles);
+            return Task.CompletedTask;
         }
 
         [Command("access")]
-        public async Task InitBotLogChannel(CommandContext context, DiscordRole accessRole)
+        public Task InitBotLogChannel(CommandContext context, DiscordRole accessRole)
         {
-            saveSytem.ServerData.accessRoleId = accessRole.Id;
-            await saveSytem.SaveData();
-        }
-
-        [Command("save")]
-        public Task Save(CommandContext context)
-        {
-            return saveSytem.SaveData();
+            var roles = saveSytem.LoadAs<RoleData>();
+            roles.accessRoleId = accessRole.Id;
+            saveSytem.SaveAs<RoleData>(roles);
+            return Task.CompletedTask;
         }
     }
 }

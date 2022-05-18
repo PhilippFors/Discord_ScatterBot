@@ -58,8 +58,7 @@ namespace ScatterBot_v2
 
             var applicationHandler = new ApplicationService();
             var saveSystem = new SaveSystem();
-            saveSystem.LoadData();
-
+            
             serviceCollection = new ServiceCollection()
             {
                 SaveSystem = saveSystem,
@@ -70,7 +69,6 @@ namespace ScatterBot_v2
                 MemberModerationService = new MemberModerationService(saveSystem)
             };
 
-            
             await InitializeCommandHandlers();
             await _client.ConnectAsync();
 
@@ -87,7 +85,7 @@ namespace ScatterBot_v2
 
         private Task InitializeCommandHandlers()
         {
-            var di = new Microsoft.Extensions.DependencyInjection.ServiceCollection()
+            var serviceProvider = new Microsoft.Extensions.DependencyInjection.ServiceCollection()
                 .AddSingleton(serviceCollection.MuteHelperService)
                 .AddSingleton(serviceCollection.NewUserHelperService)
                 .AddSingleton(serviceCollection.PinHelperService)
@@ -103,7 +101,7 @@ namespace ScatterBot_v2
                 EnableDefaultHelp = true,
                 EnableDms = false,
                 EnableMentionPrefix = false,
-                Services = di
+                Services = serviceProvider
             };
 
             _commands = _client.UseCommandsNext(config);
@@ -116,23 +114,13 @@ namespace ScatterBot_v2
         private async Task HandleMessagesCreated(DiscordClient client, MessageCreateEventArgs eventArgs)
         {
             var message = eventArgs.Message;
-            if (message.Channel.Id != serviceCollection.SaveSystem.ServerData.welcomeChannel)
+            if (message.Channel.Id != serviceCollection.SaveSystem.LoadAs<ChannelConfigs>().welcomeChannel)
             {
                 return;
             }
 
             // new user messages will be logged and can be used later for automatic acceptance
             await serviceCollection.NewUserHelperService.AddWelcomeMessage(message);
-
-            // Bonked users can still type in welcome so this bonks 'em again
-            var author = message.Author;
-
-            if (serviceCollection.MuteHelperService.IsBonked(author.Id))
-            {
-                var response = await eventArgs.Message.RespondAsync($"No talking for you {author.Mention}.");
-                await message.DeleteAsync();
-                await response.WaitDeleteMessage(15);
-            }
         }
 
         private async Task HandleChannelPinsUpdated(DiscordClient client, ChannelPinsUpdateEventArgs eventArgs)

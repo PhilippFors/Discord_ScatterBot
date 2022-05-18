@@ -20,7 +20,7 @@ namespace ScatterBot_v2.core.Commands.ModCommands
         }
 
         [Command("ban")]
-        [Description("Bans a user id from the server.")]
+        [Description("Bans a user from the server.")]
         [RequireUserPermissions(Permissions.BanMembers)]
         public async Task BanAsync(CommandContext context, ulong id, int deleteMessageDays = 0,
             [RemainingText] string reason = "")
@@ -120,15 +120,6 @@ namespace ScatterBot_v2.core.Commands.ModCommands
             foreach (var user in users) {
                 await user.GrantRoleAsync(role);
             }
-        }
-
-        [Command("bonkcount")]
-        [Description("Returns the amount of bonked people.")]
-        public async Task BonkAmount(CommandContext context)
-        {
-            var amount = saveSystem.ServerData.bonkedMembers.Length;
-            await context.Guild.LogToChannel($"{amount.ToString()} people are bonked right now.",
-                saveSystem.ServerData.botLogChannel);
         }
 
         private DiscordRole GetRole(CommandContext context, string roleName) => context.Guild.GetRole(roleName);

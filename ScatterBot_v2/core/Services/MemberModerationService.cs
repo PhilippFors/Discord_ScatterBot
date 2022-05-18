@@ -9,17 +9,16 @@ namespace ScatterBot_v2.core.Services
     /// <summary>
     /// General member moderation stuff.
     /// </summary>
-    public class MemberModerationService
+    public class MemberModerationService : ISaveable
     {
-        private Dictionary<ulong, int> warnings => saveSystem.ServerData.userWarnings;
-        private SaveSystem saveSystem;
+        private Dictionary<ulong, int> warnings => serverData.userWarnings;
+        private readonly SaveSystem saveSystem;
+        private ServerData serverData;
         
         public MemberModerationService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
-            if(saveSystem.ServerData.userWarnings == null){
-                saveSystem.ServerData.userWarnings = new Dictionary<ulong, int>();
-            }
+            Load();
         }
     
         public async Task BanMember(CommandContext context, DiscordMember user, int deleteMessage, string reason)
@@ -30,15 +29,16 @@ namespace ScatterBot_v2.core.Services
                 warnings.Remove(user.Id);
             }
             LogBan(context, user, reason);
-            await saveSystem.SaveData();
+            Save();
         }
     
         private void LogBan(CommandContext context, DiscordMember user, string msg)
         {
+            var reason = string.IsNullOrEmpty(msg) ? "" : " Reason: " + msg;
             var embed = new DiscordEmbedBuilder
             {
                 Title = "Member Banned",
-                Description = $"{user.Mention} has been banned. Reason: {msg}",
+                Description = $"{user.Mention} has been banned.{reason}",
                 Color = new DiscordColor(0xFF0000)
             };
             context.RespondAsync(embed);
@@ -55,7 +55,7 @@ namespace ScatterBot_v2.core.Services
                 warnings.Add(user.Id, 1);
             }
             LogWarning(context, user, reason);
-            saveSystem.SaveData();
+            Save();
         }
 
         public void QueryWarn(CommandContext context, DiscordMember user)
@@ -67,7 +67,7 @@ namespace ScatterBot_v2.core.Services
             
             var embed = new DiscordEmbedBuilder
             {
-                Title = "Member Warnings",
+                Title = $"Member {user.Mention} Warned",
                 Description = $"{user.Username} has {warnings[user.Id]} out of 3 warnings.",
                 Color = new DiscordColor(0xFF0000)
             };
@@ -94,11 +94,11 @@ namespace ScatterBot_v2.core.Services
             var embed = new DiscordEmbedBuilder
             {
                 Title = "Warning Removed",
-                Description = $"Removed {warns} warnings from {user.Username}.",
+                Description = $"Removed {warns} warnings from {user.Mention}." ,
                 Color = new DiscordColor(0xFF0000)
             };
             context.RespondAsync(embed);
-            saveSystem.SaveData();
+            Save();
         }
 
         private bool HasWarning(CommandContext context, DiscordMember user)
@@ -121,6 +121,17 @@ namespace ScatterBot_v2.core.Services
                 Color = new DiscordColor(0xFF0000)
             };
             context.RespondAsync(embed);
+        }
+
+        public void Save()
+        {
+            saveSystem.SaveAs<ServerData>(serverData);
+        }
+
+        public void Load()
+        {
+            serverData = saveSystem.LoadAs<ServerData>();
+            serverData.userWarnings ??= new Dictionary<ulong, int>();
         }
     }
 }

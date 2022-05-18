@@ -12,24 +12,19 @@ namespace ScatterBot_v2.core.Services
     /// <summary>
     /// Helps with assigning a muted role to a user and checking if the specified muted time has expired.
     /// </summary>
-    public class MuteHelperService
+    public class MuteHelperService : ISaveable
     {
-        private SaveSystem saveSystem;
-
+        private readonly SaveSystem saveSystem;
+        private ChannelConfigs channelConfigs;
+        private BonkedData bonkedData;
+        private RoleData roleData;
         private List<BonkedMember> tempBonked;
 
         public MuteHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
-            if (saveSystem.ServerData.bonkedMembers == null || saveSystem.ServerData.bonkedMembers.Length == 0)
-            {
-                tempBonked = new List<BonkedMember>();
-            }
-            else
-            {
-                tempBonked = saveSystem.ServerData.bonkedMembers.ToList();
-            }
 
+            Load();
             CheckMembers();
         }
 
@@ -46,7 +41,7 @@ namespace ScatterBot_v2.core.Services
             var user = await guild.GetMemberAsync(id);
             if (user == null)
             {
-                await guild.LogToChannel($"User with {id} could not be found", saveSystem.ServerData.botLogChannel);
+                await guild.LogToChannel($"User with {id} could not be found", channelConfigs.botLogChannel);
                 return;
             }
 
@@ -77,7 +72,7 @@ namespace ScatterBot_v2.core.Services
                 }
 
                 await user.GrantRoleAsync(
-                    guild.GetRole(saveSystem.ServerData.mutedRoleId)
+                    guild.GetRole(roleData.mutedRoleId)
                 );
 
                 var time = MinuteToSecond(bonkTimeMinutes);
@@ -98,11 +93,9 @@ namespace ScatterBot_v2.core.Services
                 CheckMembers();
             }
 
-            await guild.LogToChannel($"Bonked user {user.Username} for {bonkTimeMinutes:0.0} Minutes",
-                saveSystem.ServerData.botLogChannel);
+            await guild.LogToChannel($"Bonked user {user.Username} for {bonkTimeMinutes:0.0} Minutes", channelConfigs.botLogChannel);
 
-            saveSystem.ServerData.bonkedMembers = tempBonked.ToArray();
-            await saveSystem.SaveData();
+            Save();
         }
 
         public async Task UnbonkMember(BonkedMember member)
@@ -119,10 +112,10 @@ namespace ScatterBot_v2.core.Services
             }
 
             await user.RevokeRoleAsync(
-                guild.GetRole(saveSystem.ServerData.mutedRoleId)
+                guild.GetRole(roleData.mutedRoleId)
             );
 
-            await guild.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
+            await guild.LogToChannel($"Unbonked user {user.Username}", channelConfigs.botLogChannel);
         }
 
         public async Task UnbonkMember(ulong id)
@@ -146,10 +139,10 @@ namespace ScatterBot_v2.core.Services
             }
 
             await user.RevokeRoleAsync(
-                guild.GetRole(saveSystem.ServerData.mutedRoleId)
+                guild.GetRole(roleData.mutedRoleId)
             );
 
-            await guild.LogToChannel($"Unbonked user {user.Username}", saveSystem.ServerData.botLogChannel);
+            await guild.LogToChannel($"Unbonked user {user.Username}", channelConfigs.botLogChannel);
         }
 
         private void RemoveBonkedMember(ulong id)
@@ -160,8 +153,7 @@ namespace ScatterBot_v2.core.Services
                 tempBonked.Remove(member);
             }
 
-            saveSystem.ServerData.bonkedMembers = tempBonked.ToArray();
-            saveSystem.SaveData();
+            Save();
         }
 
         private async Task CheckMembers()
@@ -189,6 +181,21 @@ namespace ScatterBot_v2.core.Services
         private double MinuteToSecond(double time)
         {
             return time * 60;
+        }
+
+        public void Save()
+        {
+            bonkedData.bonkedMembers = tempBonked.ToArray();
+            saveSystem.SaveAs(bonkedData);
+        }
+
+        public void Load()
+        {
+            roleData = saveSystem.LoadAs<RoleData>();
+            bonkedData = saveSystem.LoadAs<BonkedData>();
+            channelConfigs = saveSystem.LoadAs<ChannelConfigs>();
+            
+            tempBonked = bonkedData.bonkedMembers == null ? new List<BonkedMember>() : bonkedData.bonkedMembers.ToList();
         }
     }
 }

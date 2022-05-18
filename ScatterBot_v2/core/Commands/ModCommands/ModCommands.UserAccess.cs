@@ -14,9 +14,9 @@ namespace ScatterBot_v2.core.Commands.ModCommands
     [RequirePermissions(Permissions.ModerateMembers)]
     public partial class ModCommands : BaseCommandModule
     {
-        public MuteHelperService MuteHelperService { private get; set; }
-        public SaveSystem saveSystem { private get; set; }
-        public MemberModerationService memberManagmentService { private get; set; }
+        public MuteHelperService MuteHelperService { get; set; }
+        public SaveSystem saveSystem { get; set; }
+        public MemberModerationService memberManagmentService { get; set; }
 
 
         [Group("access")]
@@ -30,7 +30,7 @@ namespace ScatterBot_v2.core.Commands.ModCommands
             public async Task GrantAccess(CommandContext context, params DiscordMember[] users)
             {
                 var mentions = new List<string>();
-                var accessRole = saveSystem.ServerData.accessRoleId;
+                var accessRole = saveSystem.LoadAs<RoleData>().accessRoleId;
                 foreach (var user in users)
                 {
                     if (user.HasRole(accessRole))
@@ -45,7 +45,7 @@ namespace ScatterBot_v2.core.Commands.ModCommands
                     );
                 }
 
-                var channel = context.Guild.GetChannel(saveSystem.ServerData.welcomeChannel);
+                var channel = context.Guild.GetChannel(saveSystem.LoadAs<ChannelConfigs>().welcomeChannel);
                 var m = string.Join(", ", mentions);
                 channel.SendMessageAsync($"Hi {m}. Don't break anything.");
                 await context.Message.DeleteAsync();

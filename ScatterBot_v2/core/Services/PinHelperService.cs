@@ -16,91 +16,77 @@ namespace ScatterBot_v2.core.Services
     /// </summary>
     public class PinHelperService : ISaveable
     {
-        private SaveSystem saveSystem;
-        private Dictionary<ulong, ulong> monitorArchive => pinConfig.monitorArchiveChannel;
-        private PinConfig pinConfig;
-        
+        private readonly SaveSystem saveSystem;
+        private ChannelConfigs channelConfigs;
+
         public PinHelperService(SaveSystem saveSystem)
         {
             this.saveSystem = saveSystem;
             Load();
-            if (monitorArchive == null) {
-                pinConfig.monitorArchiveChannel = new Dictionary<ulong, ulong>();
-            }
         }
 
         public void AddChannel(ulong monitor, ulong archive)
         {
-            monitorArchive.Add(monitor, archive);
+            channelConfigs.monitorArchiveChannel.Add(monitor, archive);
             Save();
-            // saveSystem.SaveData();
         }
 
         public void RemoveChannel(ulong monitor)
         {
-            monitorArchive.Remove(monitor);
+            channelConfigs.monitorArchiveChannel.Remove(monitor);
             Save();
-            // saveSystem.SaveData();
         }
 
         public async Task Pin(DiscordChannel channel, DiscordClient client)
         {
-            if (!monitorArchive.ContainsKey(channel.Id)) {
+            if (!channelConfigs.monitorArchiveChannel.ContainsKey(channel.Id)) {
                 return;
             }
 
             var messages = await channel.GetPinnedMessagesAsync();
-            if (messages == null || messages.Count == 0){
+            if (messages == null || messages.Count == 0) {
                 return;
             }
 
-            foreach (var message in messages)
-            {
-                if (!message.Pinned)
-                {
-                    continue;
-                }
-                
+            foreach (var message in messages) {
                 var attachments = message.Attachments.ToList();
 
-                await message.UnpinAsync();
 
-                var postChannel = await client.GetChannel(monitorArchive[channel.Id]); // posting copy in here
+                var postChannel =
+                    await client.GetChannel(channelConfigs.monitorArchiveChannel[channel.Id]); // posting copy in here
 
                 await postChannel.SendMessageAsync($"**Shared by:** {message.Author.Mention}\n{message.Content}");
                 var webClient = new WebClient();
 
-                foreach (var att in attachments)
-                {
-                    using (webClient)
-                    {
+                using (webClient) {
+                    foreach (var att in attachments) {
                         await webClient.DownloadFileTaskAsync(att.ProxyUrl, $"{att.FileName}");
+
+                        await using (var file = File.Open($"{att.FileName}", FileMode.Open, FileAccess.Read)) {
+                            await new DiscordMessageBuilder().WithFile(att.FileName, file).SendAsync(postChannel);
+                        }
+
+                        File.Delete($"{att.FileName}");
                     }
-
-                    Console.WriteLine($"Downloaded {att.FileName}");
-
-                    await using (var file = File.Open($"{att.FileName}", FileMode.Open, FileAccess.Read))
-                    {
-                        await new DiscordMessageBuilder().WithFile(att.FileName, file)
-                            .SendAsync(postChannel);
-                    }
-
-                    File.Delete($"{att.FileName}");
                 }
 
+                await message.UnpinAsync();
+                
                 await client.LogToChannel($"Archived {message.Author.Username}'s message to {postChannel.Name}",
-                    saveSystem.ServerData.botLogChannel);
+                    channelConfigs.botLogChannel);
             }
         }
 
         public void Save()
         {
-            saveSystem.SaveAs<PinConfig>(pinConfig);
+            saveSystem.SaveAs<ChannelConfigs>(channelConfigs);
         }
 
         public void Load()
         {
-            pinConfig = saveSystem.LoadAs<PinConfig>();
+            channelConfigs = saveSystem.LoadAs<ChannelConfigs>();
+
+            channelConfigs.monitorArchiveChannel ??= new Dictionary<ulong, ulong>();
         }
     }
 }
